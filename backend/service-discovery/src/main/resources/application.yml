@@ -1,0 +1,32 @@
+# Eureka Server Configuration (High Availability-Ready)
+server:
+  port: 8761  # Default Eureka server port
+
+spring:
+  application:
+    name: service-discovery-server
+
+# Eureka Server Configuration
+eureka:
+  instance:
+    hostname: localhost
+    appname: ${spring.application.name}
+    prefer-ip-address: false        # DNS-friendly configuration
+
+  client:
+    register-with-eureka: false      # Disable self-registration
+    fetch-registry: false            # Disable client behavior
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+
+  server:
+    enable-self-preservation: true   # Protect against network instability
+    eviction-interval-timer-in-ms: 60000  # Cleanup interval (1 minute)
+    response-cache-update-interval-ms: 30000  # Client refresh interval
+
+# Peer Awareness Configuration (For HA Cluster):
+# Uncomment and modify for multi-node deployment
+# eureka:
+#   client:
+#     service-url:
+#       defaultZone: http://peer1:8761/eureka/,http://peer2:8761/eureka/

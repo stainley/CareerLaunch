@@ -1,0 +1,42 @@
+# Eureka Server Configuration (High Availability-Ready)
+server:
+  port: 8761  # Default Eureka server port
+
+spring:
+  application:
+    name: service-discovery-server
+  security:
+    user:
+      name: admin                   # Basic Auth credentials
+      password: ${EUREKA_ADMIN_PWD} # Use environment variable for production
+
+# Eureka Server Configuration
+eureka:
+  instance:
+    hostname: localhost
+    appname: ${spring.application.name}
+    prefer-ip-address: false        # DNS-friendly configuration
+
+  client:
+    register-with-eureka: false      # Disable self-registration
+    fetch-registry: false            # Disable client behavior
+    service-url:
+      defaultZone: http://${spring.security.user.name}:${spring.security.user.password}@${eureka.instance.hostname}:${server.port}/eureka/
+
+  server:
+    enable-self-preservation: true   # Protect against network instability
+    eviction-interval-timer-in-ms: 60000  # Cleanup interval (1 minute)
+    response-cache-update-interval-ms: 30000  # Client refresh interval
+
+# Security Configuration Recommendations:
+# 1. Enable HTTPS for production environments
+# 2. Rotate credentials regularly
+# 3. Use encrypted configuration for credentials
+# 4. Implement IP whitelisting for peer communication
+
+# Peer Awareness Configuration (For HA Cluster):
+# Uncomment and modify for multi-node deployment
+# eureka:
+#   client:
+#     service-url:
+#       defaultZone: http://peer1:8761/eureka/,http://peer2:8761/eureka/
