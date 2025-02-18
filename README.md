@@ -125,6 +125,68 @@ CareerLaunch streamlines your job search by centralizing your application proces
    git clone https://github.com/yourusername/careerlaunch.git
    cd careerlaunch
 
+## Diagrams
+#### Authentication Flow Diagram
+  ```mermaid
+    sequenceDiagram
+    participant User as User
+    participant Frontend as Frontend App
+    participant Auth_Service as Auth Service
+    participant OAuth_Provider as OAuth Provider
+    participant Twilio as Twilio (2FA)
+  
+    User ->> Frontend: Click "Login with Google"
+    Frontend ->> OAuth_Provider: Redirect to OAuth Provider
+    OAuth_Provider -->> Frontend: Return Authorization Code
+    Frontend ->> Auth_Service: Exchange Code for Token
+    Auth_Service ->> OAuth_Provider: Validate Code
+    OAuth_Provider -->> Auth_Service: Return Access Token
+    Auth_Service -->> Frontend: Issue JWT Token
+    Frontend ->> Auth_Service: Enable 2FA
+    Auth_Service ->> Twilio: Send Verification Code
+    Twilio -->> User: SMS/Email Code
+    User ->> Frontend: Enter Verification Code
+    Frontend ->> Auth_Service: Verify Code
+    Auth_Service -->> Frontend: Confirm 2FA Enabled
+  ```
+#### System Architecture Diagram
+  ```mermaid
+  graph TB
+      subgraph Frontend
+          A[ReactJS Web App] -->|HTTP Requests| B[API Gateway]
+          C[Flutter Mobile App] -->|HTTP Requests| B
+      end
+  
+      subgraph Backend
+          B -->|Route Requests| D[Auth Service]
+          B -->|Route Requests| E[Profile Service]
+          B -->|Route Requests| F[Job Service]
+          B -->|Route Requests| G[Notification Service]
+          B -->|Route Requests| H[Analytics Service]
+      end
+  
+      subgraph Databases
+          D -->|Store User Data| I[Azure PostgreSQL]
+          E -->|Store Profiles| I
+          F -->|Store Jobs| I
+          G -->|Cache Notifications| J[Azure Redis Cache]
+          H -->|Store Analytics| K[Azure Cosmos DB]
+      end
+  
+      subgraph Messaging
+          G -->|Send Events| L[Azure Event Hubs]
+          L -->|Process Events| M[Kafka Consumers]
+      end
+  
+      subgraph Cloud Services
+          N[Azure Blob Storage] -->|Store Resumes/Images| E
+          O[Azure CDN] -->|Serve Static Assets| A
+          P[Azure Key Vault] -->|Secure Secrets| D
+          Q[Azure Monitor] -->|Monitor Logs/Metrics| Backend
+      end
+  ```
+
+
 ## Contact
 
 For inquiries, suggestions, or support, please contact:
