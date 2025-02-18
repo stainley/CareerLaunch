@@ -12,7 +12,7 @@
         </processorPath>
         <module name="job-service" />
       </profile>
-      <profile name="Annotation profile for notification-service" enabled="true">
+      <profile name="Annotation profile for service-discovery" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -23,8 +23,8 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
         </processorPath>
         <module name="api-gateway" />
-        <module name="notification-service" />
         <module name="service-discovery" />
+        <module name="notification-service" />
         <module name="auth-server" />
       </profile>
     </annotationProcessing>

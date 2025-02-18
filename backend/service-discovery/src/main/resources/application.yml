@@ -17,7 +17,9 @@ eureka:
     register-with-eureka: false      # Disable self-registration
     fetch-registry: false            # Disable client behavior
     service-url:
-      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+      defaultZone: http://${EUREKA_USER}:${EUREKA_PASSWORD}@${eureka.instance.hostname}:${server.port}/eureka/
+
+
 
   server:
     enable-self-preservation: true   # Protect against network instability
