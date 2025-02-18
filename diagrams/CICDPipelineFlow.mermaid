@@ -1,0 +1,8 @@
+flowchart TD
+    A[Push Code to GitHub] --> B[Trigger GitHub Actions Workflow]
+    B --> C[Checkout Code]
+    C --> D[Run Unit Tests]
+    D --> E[Build Docker Image]
+    E --> F[Push Image to Azure Container Registry]
+    F --> G[Deploy to Azure Kubernetes Service]
+    G --> H[Monitor Deployment in Azure Monitor]

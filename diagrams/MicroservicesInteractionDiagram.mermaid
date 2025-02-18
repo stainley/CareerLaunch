@@ -1,0 +1,19 @@
+sequenceDiagram
+    participant User as User
+    participant API_Gateway as API Gateway
+    participant Auth_Service as Auth Service
+    participant Profile_Service as Profile Service
+    participant Job_Service as Job Service
+    participant Notification_Service as Notification Service
+    participant Kafka as Kafka
+
+    User ->> API_Gateway: Login Request
+    API_Gateway ->> Auth_Service: Validate Credentials
+    Auth_Service -->> API_Gateway: Return JWT Token
+    API_Gateway -->> User: Send Token
+
+    User ->> API_Gateway: Update Profile
+    API_Gateway ->> Profile_Service: Save Profile Data
+    Profile_Service ->> Kafka: Publish Profile Update Event
+    Kafka ->> Notification_Service: Process Event
+    Notification_Service -->> User: Send Notification

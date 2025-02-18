@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant User as User
+    participant Frontend as Frontend App
+    participant Auth_Service as Auth Service
+    participant OAuth_Provider as OAuth Provider
+    participant Twilio as Twilio (2FA)
+
+    User ->> Frontend: Click "Login with Google"
+    Frontend ->> OAuth_Provider: Redirect to OAuth Provider
+    OAuth_Provider -->> Frontend: Return Authorization Code
+    Frontend ->> Auth_Service: Exchange Code for Token
+    Auth_Service ->> OAuth_Provider: Validate Code
+    OAuth_Provider -->> Auth_Service: Return Access Token
+    Auth_Service -->> Frontend: Issue JWT Token
+    Frontend ->> Auth_Service: Enable 2FA
+    Auth_Service ->> Twilio: Send Verification Code
+    Twilio -->> User: SMS/Email Code
+    User ->> Frontend: Enter Verification Code
+    Frontend ->> Auth_Service: Verify Code
+    Auth_Service -->> Frontend: Confirm 2FA Enabled
