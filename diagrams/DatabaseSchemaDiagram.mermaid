@@ -1,0 +1,36 @@
+erDiagram
+    USERS {
+        UUID id
+        VARCHAR email
+        VARCHAR password_hash
+        BOOLEAN two_factor_enabled
+        TIMESTAMP created_at
+    }
+
+    PROFILES {
+        UUID user_id
+        VARCHAR first_name
+        VARCHAR last_name
+        TEXT resume_url
+        JSONB skills
+    }
+
+    JOBS {
+        UUID id
+        VARCHAR title
+        TEXT description
+        VARCHAR company_name
+        VARCHAR location
+        TIMESTAMP posted_at
+    }
+
+    APPLICATIONS {
+        UUID id
+        UUID user_id
+        UUID job_id
+        TIMESTAMP applied_at
+    }
+
+    USERS ||--o{ PROFILES : has
+    USERS ||--o{ APPLICATIONS : submits
+    JOBS ||--o{ APPLICATIONS : receives
