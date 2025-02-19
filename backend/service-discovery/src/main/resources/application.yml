@@ -1,34 +1,60 @@
 # Eureka Server Configuration (High Availability-Ready)
 server:
   port: 8761  # Default Eureka server port
+  shutdown: graceful
 
 spring:
   application:
-    name: service-discovery-server
+    name: discovery-server
+  main:
+    allow-bean-definition-overriding: true
 
 # Eureka Server Configuration
 eureka:
-  instance:
-    hostname: localhost
-    appname: ${spring.application.name}
-    prefer-ip-address: false        # DNS-friendly configuration
-
+  #instance:
+    #hostname: localhost
+    #prefer-ip-address: false        # DNS-friendly configuration
+    #lease-renewal-interval-in-seconds: 30   # Heartbeat interval (default: 30s)
+    #lease-expiration-duration-in-seconds: 90 # Timeout before eviction (default: 90s)
   client:
     register-with-eureka: false      # Disable self-registration
     fetch-registry: false            # Disable client behavior
     service-url:
-      defaultZone: http://${EUREKA_USER}:${EUREKA_PASSWORD}@${eureka.instance.hostname}:${server.port}/eureka/
+      defaultZone: http://localhost:8761/eureka/
+  #server:
+    #enable-self-preservation: true   # Protect against network instability
+    #eviction-interval-timer-in-ms: 60000  # Cleanup interval (1 minute)
+    #response-cache-update-interval-ms: 30000  # Client refresh interval
+    #wait-time-in-ms-when-sync-empty: 0
+    #renewal-percent-threshold: 0.85  # Adjust for high-traffic services
+  environment: ${EUREKA_ENVIRONMENT}
+  datacenter: ${EUREKA_DATA_CENTER}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+  health:
+    eureka:
+      enabled: true  # Enable Eureka-specific health checks
 
+logging:
+  level:
+    com.netflix.eureka: DEBUG  # More detailed logs for debugging
+    com.netflix.discovery: INFO
 
-  server:
-    enable-self-preservation: true   # Protect against network instability
-    eviction-interval-timer-in-ms: 60000  # Cleanup interval (1 minute)
-    response-cache-update-interval-ms: 30000  # Client refresh interval
-
-# Peer Awareness Configuration (For HA Cluster):
+# Peer Awareness Configuration (For HA Cluster)
 # Uncomment and modify for multi-node deployment
 # eureka:
+#   instance:
+#     hostname: eureka1  # Change per instance
 #   client:
 #     service-url:
-#       defaultZone: http://peer1:8761/eureka/,http://peer2:8761/eureka/
+#       defaultZone: http://eureka2:8761/eureka/,http://eureka3:8761/eureka/
+

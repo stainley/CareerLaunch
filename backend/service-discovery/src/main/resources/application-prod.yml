@@ -1,6 +1,9 @@
 # Eureka Server Configuration (High Availability-Ready)
 EUREKA_USER: your_username
 EUREKA_PASSWORD: your_password
+EUREKA_ENVIRONMENT: prod
+RENEWS_THRESHOLD: 0.85
+EUREKA_DATA_CENTER: Azure
 
 
 # Security Configuration Recommendations:

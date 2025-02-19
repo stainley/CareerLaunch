@@ -1,1 +1,14 @@
-spring.application.name=auth-server
+server:
+  port: 8081
+spring:
+  application:
+    name: auth-server
+eureka:
+  instance:
+    appname: auth-server
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
