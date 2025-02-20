@@ -3,6 +3,13 @@ server:
 spring:
   application:
     name: auth-server
+  thymeleaf:
+    cache: false
+  security:
+    user:
+      name: user
+      password: password
+
 eureka:
   instance:
     appname: auth-server
