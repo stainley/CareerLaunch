@@ -1,29 +1,169 @@
 package com.salapp.ticket.authserver.controller;
 
+import com.salapp.ticket.authserver.config.JwtConfig;
+import com.salapp.ticket.authserver.dto.SignupRequest;
+import com.salapp.ticket.authserver.dto.SignupResponse;
+import com.salapp.ticket.authserver.dto.TwoFactorRequest;
+import com.salapp.ticket.authserver.model.User;
+import com.salapp.ticket.authserver.service.TwoFactorService;
+import com.salapp.ticket.authserver.service.UserService;
+import dev.samstevens.totp.exceptions.QrGenerationException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.crypto.SecretKey;
+import java.util.Date;
 import java.util.Map;
 
+@Slf4j
+@CrossOrigin(maxAge = 3600, origins = "*")
 @RestController
+@RequestMapping("/api")
 public class AuthController {
+    //private static final String JWT_SECRET = "your-secret-key-must-be-at-least-32-chars-long";
+    private final JwtConfig jwtConfig;
+    private final UserService userService;
+    private final TwoFactorService twoFactorService;
+    private final AuthenticationManager authenticationManager;
 
-    @PostMapping("/api/login")
-    public ResponseEntity<String> login(@RequestBody Map<String, String> credentials) {
+    @Autowired
+    public AuthController(UserService userService, TwoFactorService twoFactorService, AuthenticationManager authenticationManager, JwtConfig jwtConfig) {
+        this.userService = userService;
+        this.twoFactorService = twoFactorService;
+        this.authenticationManager = authenticationManager;
+        this.jwtConfig = jwtConfig;
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
         String username = credentials.get("username");
         String password = credentials.get("password");
 
-        Authentication auth = new UsernamePasswordAuthenticationToken(username, password);
-        SecurityContextHolder.getContext().setAuthentication(auth);
+        // Authenticate user
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(username, password));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // Redirect to OAuth2 authorize (or return a redirect URL)
-        String redirectUrl = "http://localhost:8081/oauth2/authorize?response_type=code&client_id=job-tracker-client&redirect_uri=http://localhost:5173/callback&scope=openid%20read%20write";
-        return ResponseEntity.status(HttpStatus.FOUND).header("Location", redirectUrl).build();
+        // Fetch user and check 2FA status
+        User user = userService.findByUsername(username);
+        if (!user.isTwoFactorEnabled()) {
+            try {
+                String qrCodeData = twoFactorService.generateQrCodeData(user.getEmail(), user.getTotpSecret());
+                return ResponseEntity.ok(new SignupResponse(user.getId(), qrCodeData));
+            } catch (QrGenerationException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to generate QR code");
+            }
+        }
+        // If 2FA is already enabled, return a status indicating 2FA is required
+        return ResponseEntity.ok(new LoginResponse(user.getId(), "2fa_required"));
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
+        User user = userService.registerLocalUser(request.email(), request.password());
+        try {
+            String qrCodeData = twoFactorService.generateQrCodeData(user.getEmail(), user.getTotpSecret());
+            return ResponseEntity.ok(new SignupResponse(user.getId(), qrCodeData));
+        } catch (QrGenerationException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to generate QR code");
+        }
+    }
+
+    @PostMapping("/verify-2fa")
+    public ResponseEntity<?> verify2fa(@RequestBody TwoFactorRequest request) {
+        User user = userService.findById(request.userId()).orElseThrow(() -> new RuntimeException("User not found"));
+        if (twoFactorService.verifyTotpCode(user.getTotpSecret(), request.code())) {
+            user.setTwoFactorEnabled(true);
+            userService.save(user);
+
+            // Generate JWT
+            String token = generateJwtToken(user.getEmail());
+            return ResponseEntity.ok(new Verify2faResponse(token));
+        }
+        return ResponseEntity.badRequest().body("Invalid 2FA Code");
+    }
+
+    private String generateJwtToken(String username) {
+        // Simple JWT generation (replace with your actual JWT logic)
+        SecretKey jwtSecretKey = jwtConfig.getJwtSecretKey();
+        log.info("jwt secret key: {}", jwtSecretKey);
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 3600000)) // 1 hour
+                //.signWith(SignatureAlgorithm.HS256, "your-secret-key") // Replace with a secure key
+                .signWith(jwtSecretKey, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    @GetMapping("/api/2fa/qr")
+    public ResponseEntity<?> getQrCode(Authentication authentication) throws QrGenerationException {
+        User user = userService.findByUsername(authentication.getName());
+        String totpUri = twoFactorService.generateQrCodeData(user.getEmail(), user.getTotpSecret());
+        return ResponseEntity.ok(new SignupResponse(user.getId(), totpUri));
+    }
+
+    @GetMapping("/userinfo")
+    public ResponseEntity<?> getUserInfo(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not authenticated");
+        }
+        String username = authentication.getName();
+        User user = userService.findByUsername(username);
+        return ResponseEntity.ok(new UserInfoResponse(user.getEmail()));
+    }
+
+}
+
+// New DTO for login response
+class LoginResponse {
+    private String userId;
+    private String status;
+
+    public LoginResponse(String userId, String status) {
+        this.userId = userId;
+        this.status = status;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+}
+
+class UserInfoResponse {
+    private String username;
+
+    public UserInfoResponse(String username) {
+        this.username = username;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+}
+
+class Verify2faResponse {
+    private String token;
+
+    public Verify2faResponse(String token) {
+        this.token = token;
+    }
+
+    public String getToken() {
+        return token;
     }
 }

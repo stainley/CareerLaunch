@@ -5,10 +5,25 @@ spring:
     name: auth-server
   thymeleaf:
     cache: false
-  security:
-    user:
-      name: user
-      password: password
+
+  datasource:
+    username: ${database.username:postgres}
+    password: ${database.password:secret}
+    url: jdbc:postgresql://localhost:5432/auth_db
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 30000
+      max-lifetime: 1200000
+      connection-timeout: 20000
+      pool-name: AuthServerHikariPool
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
 eureka:
   instance:
@@ -19,3 +34,10 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+
+jwt:
+  secret:

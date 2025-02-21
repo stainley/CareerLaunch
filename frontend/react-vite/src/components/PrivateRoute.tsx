@@ -1,14 +1,10 @@
 // src/components/PrivateRoute.tsx
 import { Navigate } from "react-router-dom"; // Ensure only Navigate is imported
-import React, { FC } from "react";
+import React from "react";
 
-interface PrivateRouteProps {
-    children?: React.ReactNode;
-}
-
-const PrivateRoute: FC<PrivateRouteProps> = ({ children }) => {
-    const isAuthenticated = !!localStorage.getItem('access_token');
-
+const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    // Simple check for now; replace with real auth logic later (e.g., token check)
+    const isAuthenticated = true; // Placeholder; implement actual auth check
     return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
 

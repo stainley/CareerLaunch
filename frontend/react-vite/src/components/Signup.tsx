@@ -1,11 +1,10 @@
-// src/components/Login.tsx
-import React, {useState} from 'react';
-import QRCode from "qrcode";
+// src/components/Signup.tsx
+import React, { useState } from 'react';
 import axios from 'axios';
-import {useNavigate} from "react-router-dom";
+import QRCode from 'qrcode';
 
-const Login: React.FC = () => {
-    const [username, setUsername] = useState<string>('');
+const Signup: React.FC = () => {
+    const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
     const [qrCode, setQrCode] = useState<string>('');
@@ -13,49 +12,32 @@ const Login: React.FC = () => {
     const [userId, setUserId] = useState<string>('');
     const [show2fa, setShow2fa] = useState<boolean>(false);
 
-    const navigate = useNavigate();
-
-    const handleGoogleLogin = () => {
-        window.location.href = 'http://localhost:8081/oauth2/authorize/google';
-    };
-
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null); // Clear previous errors
+        setError(null);
         try {
             const response = await axios.post(
-                'http://localhost:8081/api/login',
-                {username, password},
+                'http://localhost:8081/api/signup',
+                { email, password },
                 {
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     withCredentials: true,
                 }
             );
-            console.log('Login response:', response.data); // Debug log
+            console.log('Signup response:', response.data);
             if (response.status === 200) {
-                if (response.data.qrCode) {
-                    // First-time login, show QR code for 2FA setup
-                    QRCode.toDataURL(response.data.qrCode).then((r) => {
-                        setQrCode(r);
-                    });
-                    setUserId(response.data.userId);
-
-
-                    setShow2fa(true);
-                } else if (response.data.status === '2fa_required') {
-                    // 2FA already enabled, show TOTP input
-                    setUserId(response.data.userId);
-                    setShow2fa(true);
-                }
+                const qrCodeDataUrl = await QRCode.toDataURL(response.data.totpUri);
+                setUserId(response.data.userId);
+                setQrCode(qrCodeDataUrl);
+                setShow2fa(true);
             }
         } catch (err) {
-            setError('Login failed: ' + (err.response?.data || err.message));
+            setError('Signup failed: ' + (err.response?.data || err.message));
         }
     };
 
     const handleTotpVerification = async () => {
         setError(null);
-        console.log('Sending 2FA verification:', { userId, code: totpCode });
         try {
             const response = await axios.post(
                 'http://localhost:8081/api/verify-2fa',
@@ -65,30 +47,20 @@ const Login: React.FC = () => {
                     withCredentials: true,
                 }
             );
-            console.log('Raw 2FA response:', response);
-            console.log('Response data:', response.data);
-            console.log('Response status:', response.status);
-            if (response.status === 200) {
-                const responseData = response.data;
-                if (responseData.token) {
-                    localStorage.setItem('access_token', responseData.token);
-                    console.log('Navigating to dashboard');
-                    navigate('/dashboard');
-                } else {
-                    setError('No token received');
-                }
+            console.log('2FA response:', response.data);
+            if (response.status === 200 && response.data.startsWith("redirect:")) {
+                window.location.href = 'http://localhost:5173/dashboard';
             }
         } catch (err) {
             setError('2FA verification failed: ' + (err.response?.data || err.message));
-            console.error('2FA error:', err);
         }
     };
 
     return (
         <div style={styles.container}>
             <div style={styles.card}>
-                <h1 style={styles.title}>Welcome Back</h1>
-                <p style={styles.subtitle}>Please log in to your account</p>
+                <h1 style={styles.title}>Sign Up</h1>
+                <p style={styles.subtitle}>Create your account</p>
                 {error && <p style={styles.error}>{error}</p>}
                 {show2fa ? (
                     <div style={styles.qrContainer}>
@@ -97,7 +69,7 @@ const Login: React.FC = () => {
                                 <p style={styles.qrText}>
                                     Scan this QR code with your authenticator app (e.g., Google Authenticator):
                                 </p>
-                                <img src={qrCode} alt="QR Code" style={styles.qrImage}/>
+                                <img src={qrCode} alt="QR Code" style={styles.qrImage} />
                             </>
                         )}
                         <input
@@ -111,19 +83,19 @@ const Login: React.FC = () => {
                         </button>
                     </div>
                 ) : (
-                    <form onSubmit={handleLogin} style={styles.form}>
+                    <form onSubmit={handleSignup} style={styles.form}>
                         <div style={styles.inputGroup}>
-                            <label htmlFor="username" style={styles.label}>
-                                Username
+                            <label htmlFor="email" style={styles.label}>
+                                Email
                             </label>
                             <input
-                                id="username"
-                                type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
+                                id="email"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                                 style={styles.input}
-                                placeholder="Enter your username"
+                                placeholder="Enter your email"
                             />
                         </div>
                         <div style={styles.inputGroup}>
@@ -141,42 +113,25 @@ const Login: React.FC = () => {
                             />
                         </div>
                         <button type="submit" style={styles.button}>
-                            Log in
-                        </button>
-                        <p>or</p>
-                        <button onClick={handleGoogleLogin} style={styles.googleButton}>
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="18"
-                                height="18"
-                                viewBox="0 0 488 512"
-                                style={styles.googleLogo}
-                            >
-                                <path
-                                    fill="#4285F4"
-                                    d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"
-                                />
-                            </svg>
-                            <span style={styles.googleButtonText}>Sign in with Google</span>
+                            Sign Up
                         </button>
                     </form>
                 )}
                 <p style={styles.footerText}>
-                    Don't have an account? <a href="/signup" style={styles.link}>Sign up</a>
+                    Already have an account? <a href="/login" style={styles.link}>Log in</a>
                 </p>
             </div>
         </div>
     );
 };
 
-// Styles (unchanged)
+// Styles (reused from Login.tsx)
 const styles = {
     container: {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: '100vh',
-        minWidth: '100vh',
         backgroundColor: '#f0f2f5',
         padding: '20px',
     },
@@ -235,28 +190,6 @@ const styles = {
         cursor: 'pointer',
         transition: 'background-color 0.3s',
     },
-    googleButton: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '10px 16px',
-        fontSize: '16px',
-        fontWeight: 500,
-        color: '#000',
-        backgroundColor: '#fff',
-        border: '1px solid #ccc',
-        borderRadius: '8px',
-        cursor: 'pointer',
-        transition: 'background-color 0.3s, border-color 0.3s',
-        width: '100%',
-        marginTop: '10px',
-    },
-    googleLogo: {
-        marginRight: '10px',
-    },
-    googleButtonText: {
-        color: '#000',
-    },
     error: {
         color: '#d9534f',
         fontSize: '14px',
@@ -286,4 +219,4 @@ const styles = {
     },
 };
 
-export default Login;
+export default Signup;

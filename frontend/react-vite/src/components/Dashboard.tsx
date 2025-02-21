@@ -1,7 +1,7 @@
 // src/components/Dashboard.tsx
-import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import axios, { AxiosError } from 'axios';
+import {useNavigate} from 'react-router-dom';
+import {useEffect, useState} from 'react';
+import axios, {AxiosError} from 'axios';
 
 // Define the expected user data shape
 interface UserData {
@@ -21,13 +21,13 @@ const Dashboard = () => {
 
             // Check token presence before making the request
             if (!token) {
-                navigate('/', { replace: true }); // Redirect to login, replace history
+                navigate('/', {replace: true}); // Redirect to login, replace history
                 return;
             }
 
             try {
                 setLoading(true);
-                const response = await axios.get<UserData>('http://localhost:8081/userinfo', {
+                const response = await axios.get<UserData>('http://localhost:8081/api/userinfo', {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -41,7 +41,7 @@ const Dashboard = () => {
                 // Handle 401 Unauthorized specifically
                 if (error.response?.status === 401) {
                     localStorage.removeItem('access_token'); // Clear invalid token
-                    navigate('/', { replace: true });
+                    navigate('/', {replace: true});
                 } else {
                     setError('Failed to load user data. Please try again.');
                 }
@@ -55,7 +55,7 @@ const Dashboard = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('access_token'); // Only remove the token
-        navigate('/', { replace: true }); // Redirect to login
+        navigate('/', {replace: true}); // Redirect to login
     };
 
     if (loading) {
@@ -72,7 +72,7 @@ const Dashboard = () => {
     }
 
     return (
-        <div style={{ textAlign: 'center', marginTop: '50px' }}>
+        <div style={{textAlign: 'center', marginTop: '50px'}}>
             <h1>Dashboard</h1>
             {userData && <p>Welcome, {userData.username}!</p>}
             <button onClick={handleLogout}>Logout</button>
