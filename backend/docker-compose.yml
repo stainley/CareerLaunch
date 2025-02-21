@@ -16,5 +16,25 @@ services:
       timeout: 5s
       retries: 5
 
+  #USE SERVICE DATABASE
+  user-database:
+    container_name: user_database
+    image: postgres:17-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=user_db
+    volumes:
+      - user-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
 volumes:
   auth-data:
+  user-data:
