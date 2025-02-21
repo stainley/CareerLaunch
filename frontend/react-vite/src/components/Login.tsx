@@ -4,6 +4,24 @@ import QRCode from "qrcode";
 import axios from 'axios';
 import {useNavigate} from "react-router-dom";
 
+interface ApiError {
+    message?: string;
+    error?: string;
+
+    [key: string]: unknown;
+}
+
+// Error handling utility function
+const getErrorMessage = (error: unknown, defaultMessage: string): string => {
+    if (axios.isAxiosError<ApiError>(error)) {
+        return error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message;
+    }
+    if (error instanceof Error) return error.message;
+    return defaultMessage;
+};
+
 const Login: React.FC = () => {
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
@@ -49,19 +67,19 @@ const Login: React.FC = () => {
                 }
             }
         } catch (err) {
-            setError('Login failed: ' + (err.response?.data || err.message));
+            setError(`Login failed: ${getErrorMessage(err, 'Unknown authentication error')}`);
         }
     };
 
     const handleTotpVerification = async () => {
         setError(null);
-        console.log('Sending 2FA verification:', { userId, code: totpCode });
+        console.log('Sending 2FA verification:', {userId, code: totpCode});
         try {
             const response = await axios.post(
                 'http://localhost:8081/api/verify-2fa',
-                { userId, code: totpCode },
+                {userId, code: totpCode},
                 {
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {'Content-Type': 'application/json'},
                     withCredentials: true,
                 }
             );
@@ -79,7 +97,7 @@ const Login: React.FC = () => {
                 }
             }
         } catch (err) {
-            setError('2FA verification failed: ' + (err.response?.data || err.message));
+            setError(`2FA verification failed: ${getErrorMessage(err, 'Unknown verification error')}`);
             console.error('2FA error:', err);
         }
     };
