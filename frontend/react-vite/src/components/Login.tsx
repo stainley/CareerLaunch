@@ -33,6 +33,8 @@ const Login: React.FC = () => {
 
     const navigate = useNavigate();
 
+    const URL_AUTH: string = "http://localhost:8080";
+
     const handleGoogleLogin = () => {
         window.location.href = 'http://localhost:8081/oauth2/authorize/google';
     };
@@ -42,7 +44,7 @@ const Login: React.FC = () => {
         setError(null); // Clear previous errors
         try {
             const response = await axios.post(
-                'http://localhost:8081/api/login',
+                `${URL_AUTH}/auth/login`,
                 {username, password},
                 {
                     headers: {'Content-Type': 'application/json'},
@@ -57,7 +59,6 @@ const Login: React.FC = () => {
                         setQrCode(r);
                     });
                     setUserId(response.data.userId);
-
 
                     setShow2fa(true);
                 } else if (response.data.status === '2fa_required') {
@@ -76,7 +77,7 @@ const Login: React.FC = () => {
         console.log('Sending 2FA verification:', {userId, code: totpCode});
         try {
             const response = await axios.post(
-                'http://localhost:8081/api/verify-2fa',
+                `${URL_AUTH}/auth/verify-2fa`,
                 {userId, code: totpCode},
                 {
                     headers: {'Content-Type': 'application/json'},

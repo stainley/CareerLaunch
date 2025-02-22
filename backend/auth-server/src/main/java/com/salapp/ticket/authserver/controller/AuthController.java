@@ -1,18 +1,19 @@
 package com.salapp.ticket.authserver.controller;
 
 import com.salapp.ticket.authserver.config.JwtConfig;
-import com.salapp.ticket.authserver.dto.SignupRequest;
-import com.salapp.ticket.authserver.dto.SignupResponse;
-import com.salapp.ticket.authserver.dto.TwoFactorRequest;
+import com.salapp.ticket.authserver.dto.*;
 import com.salapp.ticket.authserver.model.User;
 import com.salapp.ticket.authserver.service.TwoFactorService;
 import com.salapp.ticket.authserver.service.UserService;
 import dev.samstevens.totp.exceptions.QrGenerationException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,21 +21,27 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.Map;
 
 @Slf4j
-@CrossOrigin(maxAge = 3600, origins = "*")
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/auth")
 public class AuthController {
     //private static final String JWT_SECRET = "your-secret-key-must-be-at-least-32-chars-long";
     private final JwtConfig jwtConfig;
     private final UserService userService;
     private final TwoFactorService twoFactorService;
     private final AuthenticationManager authenticationManager;
+
+    @Value("${service.user.uri}")
+    private String URI_USERS_SERVICE;
+
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
     @Autowired
     public AuthController(UserService userService, TwoFactorService twoFactorService, AuthenticationManager authenticationManager, JwtConfig jwtConfig) {
@@ -56,6 +63,8 @@ public class AuthController {
 
         // Fetch user and check 2FA status
         User user = userService.findByUsername(username);
+        log.info("user found: {}", user);
+
         if (!user.isTwoFactorEnabled()) {
             try {
                 String qrCodeData = twoFactorService.generateQrCodeData(user.getEmail(), user.getTotpSecret());
@@ -73,6 +82,12 @@ public class AuthController {
         User user = userService.registerLocalUser(request.email(), request.password());
         try {
             String qrCodeData = twoFactorService.generateQrCodeData(user.getEmail(), user.getTotpSecret());
+
+            // Call User-Service to create profile
+            RestTemplate restTemplate = new RestTemplate();
+            HttpEntity<UserProfileRequest> userProfileEntity = new HttpEntity<>(new UserProfileRequest(user.getId(), request.email()));
+            restTemplate.postForEntity(URI_USERS_SERVICE, userProfileEntity, Void.class);
+
             return ResponseEntity.ok(new SignupResponse(user.getId(), qrCodeData));
         } catch (QrGenerationException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to generate QR code");
@@ -95,14 +110,14 @@ public class AuthController {
 
     private String generateJwtToken(String username) {
         // Simple JWT generation (replace with your actual JWT logic)
-        SecretKey jwtSecretKey = jwtConfig.getJwtSecretKey();
-        log.info("jwt secret key: {}", jwtSecretKey);
+        /*SecretKey jwtSecretKey = jwtConfig.getJwtSecretKey();
+        log.info("jwt secret key: {}", jwtSecretKey);*/
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 3600000)) // 1 hour
-                //.signWith(SignatureAlgorithm.HS256, "your-secret-key") // Replace with a secure key
-                .signWith(jwtSecretKey, SignatureAlgorithm.HS256)
+                //.signWith(SignatureAlgorithm.HS256, jwtSecret) // Replace with a secure key
+                .signWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()), SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -126,24 +141,9 @@ public class AuthController {
 }
 
 // New DTO for login response
-class LoginResponse {
-    private String userId;
-    private String status;
 
-    public LoginResponse(String userId, String status) {
-        this.userId = userId;
-        this.status = status;
-    }
 
-    public String getUserId() {
-        return userId;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-}
-
+@Getter
 class UserInfoResponse {
     private String username;
 
@@ -151,11 +151,9 @@ class UserInfoResponse {
         this.username = username;
     }
 
-    public String getUsername() {
-        return username;
-    }
 }
 
+@Getter
 class Verify2faResponse {
     private String token;
 
@@ -163,7 +161,4 @@ class Verify2faResponse {
         this.token = token;
     }
 
-    public String getToken() {
-        return token;
-    }
 }

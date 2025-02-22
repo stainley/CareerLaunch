@@ -1,5 +1,5 @@
 // src/components/Signup.tsx
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import axios from 'axios';
 import QRCode from 'qrcode';
 
@@ -12,15 +12,16 @@ const Signup: React.FC = () => {
     const [userId, setUserId] = useState<string>('');
     const [show2fa, setShow2fa] = useState<boolean>(false);
 
+    const URL_AUTH: string = "http://localhost:8080";
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         try {
             const response = await axios.post(
-                'http://localhost:8081/api/signup',
-                { email, password },
+                `${URL_AUTH}/auth/signup`,
+                {email, password},
                 {
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {'Content-Type': 'application/json'},
                     withCredentials: true,
                 }
             );
@@ -40,10 +41,10 @@ const Signup: React.FC = () => {
         setError(null);
         try {
             const response = await axios.post(
-                'http://localhost:8081/api/verify-2fa',
-                { userId, code: totpCode },
+                `${URL_AUTH}/auth/verify-2fa`,
+                {userId, code: totpCode},
                 {
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {'Content-Type': 'application/json'},
                     withCredentials: true,
                 }
             );
@@ -69,7 +70,7 @@ const Signup: React.FC = () => {
                                 <p style={styles.qrText}>
                                     Scan this QR code with your authenticator app (e.g., Google Authenticator):
                                 </p>
-                                <img src={qrCode} alt="QR Code" style={styles.qrImage} />
+                                <img src={qrCode} alt="QR Code" style={styles.qrImage}/>
                             </>
                         )}
                         <input

@@ -9,6 +9,8 @@ interface UserData {
     [key: string]: any; // For flexibility if additional fields exist
 }
 
+const URL_AUTH: string = "http://localhost:8080";
+
 const Dashboard = () => {
     const navigate = useNavigate();
     const [userData, setUserData] = useState<UserData | null>(null);
@@ -27,7 +29,7 @@ const Dashboard = () => {
 
             try {
                 setLoading(true);
-                const response = await axios.get<UserData>('http://localhost:8081/api/userinfo', {
+                const response = await axios.get<UserData>(`${URL_AUTH}/auth/userinfo`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -50,7 +52,7 @@ const Dashboard = () => {
             }
         };
 
-        fetchUserData();
+        fetchUserData().finally();
     }, [navigate]); // navigate is stable, so this is fine
 
     const handleLogout = () => {

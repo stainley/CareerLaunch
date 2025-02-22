@@ -1,11 +1,9 @@
 package com.salapp.ticket.authserver.config;
 
 import com.salapp.ticket.authserver.repository.UserRepository;
-import io.jsonwebtoken.JwtParser;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -14,7 +12,9 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.CorsConfigurer;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -23,7 +23,6 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
@@ -31,7 +30,6 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.web.cors.CorsConfiguration;
@@ -46,12 +44,13 @@ import java.util.UUID;
 @Configuration
 @EnableWebSecurity
 public class AuthorizationServerConfig {
-    private final JwtConfig jwtConfig;
+    //private final JwtConfig jwtConfig;
+    @Value("${jwt.secret}")
+    private String jwtSecret;
     private final UserRepository userRepository;
 
-    public AuthorizationServerConfig(UserRepository userRepository, JwtConfig jwtConfig) {
+    public AuthorizationServerConfig(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.jwtConfig = jwtConfig;
     }
 
     @Bean
@@ -74,11 +73,13 @@ public class AuthorizationServerConfig {
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/login", "/api/signup", "/api/verify-2fa", "/oauth2/**"))
+                /*.csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/v1/auth/login", "/api/v1/auth/signup", "/api/v1/verify-2fa", "/oauth2/**"))*/
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(CorsConfigurer::disable)
                 .authorizeHttpRequests(authorize ->
                         authorize
-                                .requestMatchers("/api/login", "/api/signup", "/api/verify-2fa", "/oauth2/authorize", "/oauth2/token").permitAll()
+                                .requestMatchers("/auth/login", "/auth/signup", "/auth/verify-2fa", "/oauth2/authorize", "/oauth2/token", "/users").permitAll()
                                 .requestMatchers("/api/**", "/userinfo").authenticated()
                                 .anyRequest().permitAll())
                 .formLogin(form -> form
@@ -90,15 +91,16 @@ public class AuthorizationServerConfig {
                 .exceptionHandling(exceptions ->
                         exceptions.authenticationEntryPoint(
                                 new LoginUrlAuthenticationEntryPoint("http://localhost:5173/login")))
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
-                .cors(Customizer.withDefaults());
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+        /*.cors(Customizer.withDefaults());*/
 
         return http.build();
     }
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        SecretKey key = jwtConfig.getJwtSecretKey();
+        //SecretKey key = jwtConfig.getJwtSecretKey();
+        SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
         log.info("jwt secret key: {}", key);
         return NimbusJwtDecoder.withSecretKey(key).build();
     }
@@ -150,7 +152,7 @@ public class AuthorizationServerConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    @Bean
+    /*@Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:5173"));
@@ -167,5 +169,5 @@ public class AuthorizationServerConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
+    }*/
 }

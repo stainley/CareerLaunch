@@ -12,4 +12,9 @@ public class FallbackController {
     public String userFallback() {
         return "User Service is currently unavailable. Please try again later.";
     }
+
+    @GetMapping("/auth")
+    public String authFallback() {
+        return "Auth Service is currently unavailable. Please try again later";
+    }
 }
