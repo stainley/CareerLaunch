@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Welcome</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+    </style>
+
+</head>
+<body>
+<div class="container">
+    <h1>Welcome, <span th:text="${firstName}">User</span>!</h1>
+    <p>We’re thrilled to have you on board at CareerLaunch. Start exploring your career opportunities today!</p>
+    <p>Best regards,<br>The CareerLaunch Team</br></p>
+</div>
+</body>
+</html>

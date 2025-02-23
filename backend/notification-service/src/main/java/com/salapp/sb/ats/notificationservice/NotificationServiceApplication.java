@@ -1,4 +1,4 @@
-package com.salapp.ticket.notificationservice;
+package com.salapp.sb.ats.notificationservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

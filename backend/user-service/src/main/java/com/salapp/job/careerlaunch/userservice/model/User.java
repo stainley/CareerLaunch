@@ -55,6 +55,21 @@ public class User {
     @Embedded
     private Address address;
 
+    @Version
+    private Long version;
+
+    @Column(length = 255)
+    private String profilePictureUrl;
+
+    @Column(nullable = false)
+    private boolean isActive;
+
+    @Column(length = 255)
+    private String activationToken;
+
+    @Column
+    private LocalDateTime activationTokenExpiry;
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(updatable = false, nullable = false)
     private LocalDateTime createdAt;
@@ -62,9 +77,6 @@ public class User {
     @UpdateTimestamp
     @Column(updatable = false)
     private LocalDateTime updatedAt;
-
-    @Version
-    private Long version;
 
     public static class UserBuilder {
         private LocalDateTime createdAt = LocalDateTime.now();

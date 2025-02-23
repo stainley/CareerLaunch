@@ -1,4 +1,4 @@
-package com.salapp.ticket.notificationservice;
+package com.salapp.sb.ats.notificationservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
