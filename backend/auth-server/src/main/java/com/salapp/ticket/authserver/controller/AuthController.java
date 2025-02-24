@@ -31,7 +31,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-    //private static final String JWT_SECRET = "your-secret-key-must-be-at-least-32-chars-long";
     private final JwtConfig jwtConfig;
     private final UserService userService;
     private final TwoFactorService twoFactorService;
@@ -65,6 +64,11 @@ public class AuthController {
         User user = userService.findByUsername(username);
         log.info("user found: {}", user);
 
+        if (!validateAccountActivation(user.getId())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Account not activated");
+        }
+
+
         if (!user.isTwoFactorEnabled()) {
             try {
                 String qrCodeData = twoFactorService.generateQrCodeData(user.getEmail(), user.getTotpSecret());
@@ -77,6 +81,14 @@ public class AuthController {
         return ResponseEntity.ok(new LoginResponse(user.getId(), "2fa_required"));
     }
 
+    //TODO: change the URI_USERS_SERVICE endpoint to point to the host and port only
+    private Boolean validateAccountActivation(String userId) {
+
+        RestTemplate restTemplate = new RestTemplate();
+        return Boolean.TRUE.equals(restTemplate.getForEntity("http://localhost:8080" + "/users/" + userId + "/activated", Boolean.class).getBody());
+
+    }
+
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
         User user = userService.registerLocalUser(request.email(), request.password());
@@ -86,9 +98,10 @@ public class AuthController {
             // Call User-Service to create profile
             RestTemplate restTemplate = new RestTemplate();
             HttpEntity<UserProfileRequest> userProfileEntity = new HttpEntity<>(new UserProfileRequest(user.getId(), request.email()));
-            restTemplate.postForEntity(URI_USERS_SERVICE, userProfileEntity, Void.class);
+            ResponseEntity<User> userSaved = restTemplate.postForEntity(URI_USERS_SERVICE, userProfileEntity, User.class);
 
-            return ResponseEntity.ok(new SignupResponse(user.getId(), qrCodeData));
+            log.info("User saved {}", userSaved.getBody());
+            return ResponseEntity.status(HttpStatus.CREATED.value()).body(userSaved.getBody());
         } catch (QrGenerationException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to generate QR code");
         }

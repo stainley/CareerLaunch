@@ -3,11 +3,13 @@ package com.salapp.ticket.authserver.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.util.Date;
 
+@ToString
 @Entity
 @Getter
 @Setter

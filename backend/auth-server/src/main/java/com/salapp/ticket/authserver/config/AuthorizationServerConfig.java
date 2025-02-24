@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -53,7 +54,7 @@ public class AuthorizationServerConfig {
         this.userRepository = userRepository;
     }
 
-    @Bean
+/*    @Bean
     @Order(1)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -67,7 +68,7 @@ public class AuthorizationServerConfig {
                 .cors(Customizer.withDefaults());
 
         return http.build();
-    }
+    }*/
 
     @Bean
     @Order(2)
@@ -79,9 +80,12 @@ public class AuthorizationServerConfig {
                 .cors(CorsConfigurer::disable)
                 .authorizeHttpRequests(authorize ->
                         authorize
-                                .requestMatchers("/auth/login", "/auth/signup", "/auth/verify-2fa", "/oauth2/authorize", "/oauth2/token", "/users").permitAll()
-                                .requestMatchers("/api/**", "/userinfo").authenticated()
-                                .anyRequest().permitAll())
+                                .requestMatchers("/users/activate").permitAll()
+                                .requestMatchers("/auth/login", "/auth/signup", "/auth/verify-2fa", "/oauth2/authorize", "/oauth2/token", "/users/register")
+                                .permitAll()
+                                .requestMatchers("/api/**", "/userinfo")
+                                .authenticated()
+                                .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginProcessingUrl("/form-login")
                         .successHandler((request, response, authentication) -> {

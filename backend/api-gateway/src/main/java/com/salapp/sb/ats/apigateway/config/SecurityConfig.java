@@ -31,7 +31,7 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers("/auth/login", "/users/register", "/auth/signup", "/auth/verify-2fa").permitAll()
+                        .pathMatchers("/auth/login", "/users/register", "/auth/signup", "/auth/verify-2fa", "/users/activate", "/users/*/activated").permitAll()
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

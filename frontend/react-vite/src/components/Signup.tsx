@@ -1,16 +1,39 @@
 // src/components/Signup.tsx
 import React, {useState} from 'react';
 import axios from 'axios';
-import QRCode from 'qrcode';
+/*import QRCode from 'qrcode';*/
+import {ToastContainer, toast} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import {useNavigate} from "react-router-dom";
+
+interface ApiError {
+    message?: string;
+    error?: string;
+
+    [key: string]: unknown;
+}
+
+// Error handling utility function
+const getErrorMessage = (error: unknown, defaultMessage: string): string => {
+    if (axios.isAxiosError<ApiError>(error)) {
+        return error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message;
+    }
+    if (error instanceof Error) return error.message;
+    return defaultMessage;
+};
 
 const Signup: React.FC = () => {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
-    const [qrCode, setQrCode] = useState<string>('');
+    /*const [qrCode, setQrCode] = useState<string>('');
     const [totpCode, setTotpCode] = useState<string>('');
     const [userId, setUserId] = useState<string>('');
-    const [show2fa, setShow2fa] = useState<boolean>(false);
+    const [show2fa, setShow2fa] = useState<boolean>(false);*/
+
+    const navigate = useNavigate();
 
     const URL_AUTH: string = "http://localhost:8080";
     const handleSignup = async (e: React.FormEvent) => {
@@ -26,18 +49,23 @@ const Signup: React.FC = () => {
                 }
             );
             console.log('Signup response:', response.data);
-            if (response.status === 200) {
-                const qrCodeDataUrl = await QRCode.toDataURL(response.data.totpUri);
+            if (response.status === 201) {
+                /* const qrCodeDataUrl = await QRCode.toDataURL(response.data.totpUri);
                 setUserId(response.data.userId);
                 setQrCode(qrCodeDataUrl);
                 setShow2fa(true);
+               */
+                toast.success('Registration successful! Please check your email for the activation link.', {
+                    onClose: () => navigate('/login'),
+                    autoClose: 3000,
+                });
             }
         } catch (err) {
-            setError('Signup failed: ' + (err.response?.data || err.message));
+            setError(`Signup failed: ${getErrorMessage(err, "Unknown signup error")}`);
         }
     };
 
-    const handleTotpVerification = async () => {
+    /*const handleTotpVerification = async () => {
         setError(null);
         try {
             const response = await axios.post(
@@ -53,9 +81,9 @@ const Signup: React.FC = () => {
                 window.location.href = 'http://localhost:5173/dashboard';
             }
         } catch (err) {
-            setError('2FA verification failed: ' + (err.response?.data || err.message));
+            setError(`2FA verification failed: ${getErrorMessage(err, "Unknown 2FA error")}`);
         }
-    };
+    };*/
 
     return (
         <div style={styles.container}>
@@ -63,65 +91,47 @@ const Signup: React.FC = () => {
                 <h1 style={styles.title}>Sign Up</h1>
                 <p style={styles.subtitle}>Create your account</p>
                 {error && <p style={styles.error}>{error}</p>}
-                {show2fa ? (
-                    <div style={styles.qrContainer}>
-                        {qrCode && (
-                            <>
-                                <p style={styles.qrText}>
-                                    Scan this QR code with your authenticator app (e.g., Google Authenticator):
-                                </p>
-                                <img src={qrCode} alt="QR Code" style={styles.qrImage}/>
-                            </>
-                        )}
+
+                <form onSubmit={handleSignup} style={styles.form}>
+                    <div style={styles.inputGroup}>
+                        <label htmlFor="email" style={styles.label}>
+                            Email
+                        </label>
                         <input
-                            value={totpCode}
-                            onChange={(e) => setTotpCode(e.target.value)}
-                            placeholder="Enter 6-digit code"
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
                             style={styles.input}
+                            placeholder="Enter your email"
                         />
-                        <button onClick={handleTotpVerification} style={styles.button}>
-                            Verify 2FA
-                        </button>
                     </div>
-                ) : (
-                    <form onSubmit={handleSignup} style={styles.form}>
-                        <div style={styles.inputGroup}>
-                            <label htmlFor="email" style={styles.label}>
-                                Email
-                            </label>
-                            <input
-                                id="email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                style={styles.input}
-                                placeholder="Enter your email"
-                            />
-                        </div>
-                        <div style={styles.inputGroup}>
-                            <label htmlFor="password" style={styles.label}>
-                                Password
-                            </label>
-                            <input
-                                id="password"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                style={styles.input}
-                                placeholder="Enter your password"
-                            />
-                        </div>
-                        <button type="submit" style={styles.button}>
-                            Sign Up
-                        </button>
-                    </form>
-                )}
+                    <div style={styles.inputGroup}>
+                        <label htmlFor="password" style={styles.label}>
+                            Password
+                        </label>
+                        <input
+                            id="password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            style={styles.input}
+                            placeholder="Enter your password"
+                        />
+                    </div>
+                    <button type="submit" style={styles.button}>
+                        Sign Up
+                    </button>
+                </form>
+
                 <p style={styles.footerText}>
                     Already have an account? <a href="/login" style={styles.link}>Log in</a>
                 </p>
             </div>
+            <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false}/>
+
         </div>
     );
 };

@@ -1,12 +1,13 @@
 package com.salapp.sb.ats.notificationservice.services;
 
-import com.salapp.sb.ats.notificationservice.dto.NotificationRequest;
+import com.salapp.career.launch.shared.library.NotificationRequest;
 import com.salapp.sb.ats.notificationservice.model.Notification;
 import com.salapp.sb.ats.notificationservice.repositories.NotificationRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -29,8 +30,17 @@ public class NotificationService {
     @Value("${app.base-url}")
     private String mainServiceUrl;
 
-    @KafkaListener(topics = "${spring.kafka.topic.notification}", groupId = "${spring.kafka.consumer.group-id}")
-    public void listenNotificationEvents(NotificationRequest request) {
+    @KafkaListener(
+            topics = "${spring.kafka.topic.notification}",
+            groupId = "${spring.kafka.consumer.group-id}",
+            containerFactory = "kafkaListenerContainerFactory"
+    )
+    public void listenNotificationEvents(ConsumerRecord<String, NotificationRequest> record) {
+
+        log.info("Received notification event for key {}: {}", record.key(), record.value());
+
+        NotificationRequest request = record.value();
+
         String recipient = request.getRecipient();
         String messageType = request.getMessageType();
         NotificationRequest.NotificationData data = request.getData();
@@ -51,7 +61,8 @@ public class NotificationService {
 
         return switch (messageType) {
             case "activation" -> {
-                context.setVariable("activationLink", mainServiceUrl + "/api/v1/users/activate?token=" + data.getToken());
+                //context.setVariable("activationLink", mainServiceUrl + "/users/activate?token=" + data.getToken());
+                context.setVariable("activationLink", mainServiceUrl + "/activate?token=" + data.getToken());
                 context.setVariable("expiryDate", data.getExpiry());
                 yield templateEngine.process("activation-email", context);
             }

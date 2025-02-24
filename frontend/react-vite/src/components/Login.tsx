@@ -3,6 +3,7 @@ import React, {useState} from 'react';
 import QRCode from "qrcode";
 import axios from 'axios';
 import {useNavigate} from "react-router-dom";
+import {ToastContainer, toast} from 'react-toastify';
 
 interface ApiError {
     message?: string;
@@ -36,7 +37,9 @@ const Login: React.FC = () => {
     const URL_AUTH: string = "http://localhost:8080";
 
     const handleGoogleLogin = () => {
-        window.location.href = 'http://localhost:8081/oauth2/authorize/google';
+        window.alert('Function under construction');
+        throw new Error('Function under construction');
+        //window.location.href = 'http://localhost:8081/oauth2/authorize/google';
     };
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -55,8 +58,8 @@ const Login: React.FC = () => {
             if (response.status === 200) {
                 if (response.data.qrCode) {
                     // First-time login, show QR code for 2FA setup
-                    QRCode.toDataURL(response.data.qrCode).then((r) => {
-                        setQrCode(r);
+                    QRCode.toDataURL(response.data.qrCode).then((result) => {
+                        setQrCode(result);
                     });
                     setUserId(response.data.userId);
 
@@ -68,7 +71,11 @@ const Login: React.FC = () => {
                 }
             }
         } catch (err) {
-            setError(`Login failed: ${getErrorMessage(err, 'Unknown authentication error')}`);
+            if (err.status === 401) {
+                setError(err.response?.data);
+            } else {
+                setError(`Login failed: ${getErrorMessage(err, 'Unknown authentication error')}`);
+            }
         }
     };
 

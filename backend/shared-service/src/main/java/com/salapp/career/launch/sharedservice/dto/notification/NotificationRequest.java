@@ -1,9 +1,10 @@
-package com.salapp.sb.ats.notificationservice.dto;
+package com.salapp.career.launch.sharedservice.dto.notification;
 
 import lombok.Data;
 
 @Data
 public class NotificationRequest {
+
     private String recipient;
     private String messageType;
     private NotificationData data;

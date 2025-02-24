@@ -3,19 +3,37 @@ server:
 spring:
   application:
     name: notification-service
+  # Database (optional, for logging notifications)
+  datasource:
+    url: jdbc:postgresql://localhost:5434/notification_db
+    username: postgres
+    password: secret
+  jpa:
+    hibernate:
+      ddl-auto: update
 
-  # Email Configuration
+  # Email Configuration for Local Mailhog Server
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: your-email@gmail.com
-    password: your-app-password
+    host: localhost  # Docker service name
+    port: 1025        # Mailhog SMTP port
     properties:
       mail:
         smtp:
-          auth: true
+          auth: false
           starttls:
-            enable: true
+            enable: false
+  # Email Configuration
+  #mail:
+  #  host: smtp.gmail.com
+  #  port: 587
+  #  username: your-email@gmail.com
+  #  password: your-app-password
+  #  properties:
+  #    mail:
+  #      smtp:
+  #        auth: true
+  #        starttls:
+  #          enable: true
 
   # Kafka Notification
   kafka:
@@ -27,11 +45,22 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring:
+          deserializer:
+            value:
+              delegate:
+                class: org.springframework.kafka.support.serializer.JsonDeserializer
           json:
+            use:
+              type:
+                headers: true
             trusted:
-              packages: com.salapp.sb.ats.notificationservice.dto
+              packages: com.salapp.career.launch.shared.library
     topic:
       notification: notification-events
-app:
-  base-url: http://localhost:8080
 
+
+# Base URL of the main app (for activation links)
+app:
+  base-url: http://localhost:5173
+
+# Eureka Discovery Service
