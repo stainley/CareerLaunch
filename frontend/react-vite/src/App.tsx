@@ -8,9 +8,13 @@ import Signup from "./components/Signup.tsx";
 
 import './App.css';
 import ActivateAccount from "./components/ActivateAccount.tsx";
+import React from "react";
 
-function App() {
+const App: React.FC = () => {
+
+
     return (
+
         <Router>
             <Routes>
                 <Route path="/" element={<Login/>}/>
