@@ -1,0 +1,4 @@
+myhostname = mail.local
+mydomain = local
+mydestination = localhost.localdomain, localhost
+inet_interfaces = all

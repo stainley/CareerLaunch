@@ -1,0 +1,50 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: auth-server
+  thymeleaf:
+    cache: false
+
+  datasource:
+    username: ${database.username:postgres}
+    password: ${database.password:secret}
+    url: jdbc:postgresql://localhost:5432/auth_db
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 30000
+      max-lifetime: 1200000
+      connection-timeout: 20000
+      pool-name: AuthServerHikariPool
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+eureka:
+  instance:
+    appname: auth-server
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+
+
+api:
+  version: v1
+service:
+  user:
+    uri: http://localhost:8080/users/register
+
+jwt:
+  secret: Zr15bQMDn+YTocPI52Td+ZhNcJmPJG1CC9hfK8iApDU=
