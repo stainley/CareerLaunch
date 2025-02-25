@@ -81,3 +81,5 @@ fabric.properties
 node_modules
 package.json
 package-lock.json
+
+.idea/compiler.xml
