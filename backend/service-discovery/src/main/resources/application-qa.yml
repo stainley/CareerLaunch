@@ -1,0 +1,6 @@
+EUREKA_USER: your_username
+EUREKA_PASSWORD: your_password
+EUREKA_ENVIRONMENT: test
+RENEWS_THRESHOLD: 0.50
+EUREKA_DATA_CENTER: Cloud Server
+

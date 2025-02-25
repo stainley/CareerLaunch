@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/frontend/react-ui/react-ui.iml" filepath="$PROJECT_DIR$/frontend/react-ui/react-ui.iml" />
+      <module fileurl="file://$PROJECT_DIR$/frontend/angular-ui/angular-ui.iml" filepath="$PROJECT_DIR$/frontend/angular-ui/angular-ui.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mobile/flutter_career_app/flutter_career_app.iml" filepath="$PROJECT_DIR$/mobile/flutter_career_app/flutter_career_app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/frontend/react-vite/react-vite.iml" filepath="$PROJECT_DIR$/frontend/react-vite/react-vite.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/workspace.iml" filepath="$PROJECT_DIR$/.idea/workspace.iml" />
     </modules>
   </component>

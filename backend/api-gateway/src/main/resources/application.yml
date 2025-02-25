@@ -1,0 +1,41 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: auth-server
+          uri: lb://auth-server
+          predicates:
+            - Path=/auth/**
+          #filters:
+          #  - RewritePath=/auth/(?<segment>.*), /api/$\{segment}
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/users/**
+          #filters:
+          #  - RewritePath=/users/(?<segment>.*), /api/users/$\{segment}
+
+eureka:
+  instance:
+    appname: api-gateway
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+jwt:
+  secret: Zr15bQMDn+YTocPI52Td+ZhNcJmPJG1CC9hfK8iApDU=
+
+logging:
+  level:
+    org.springframework.cloud.gateway: debug

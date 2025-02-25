@@ -1,32 +1,10 @@
 # Eureka Server Configuration (High Availability-Ready)
-server:
-  port: 8761  # Default Eureka server port
+EUREKA_USER: your_username
+EUREKA_PASSWORD: your_password
+EUREKA_ENVIRONMENT: prod
+RENEWS_THRESHOLD: 0.85
+EUREKA_DATA_CENTER: Azure
 
-spring:
-  application:
-    name: service-discovery-server
-  security:
-    user:
-      name: admin                   # Basic Auth credentials
-      password: ${EUREKA_ADMIN_PWD} # Use environment variable for production
-
-# Eureka Server Configuration
-eureka:
-  instance:
-    hostname: localhost
-    appname: ${spring.application.name}
-    prefer-ip-address: false        # DNS-friendly configuration
-
-  client:
-    register-with-eureka: false      # Disable self-registration
-    fetch-registry: false            # Disable client behavior
-    service-url:
-      defaultZone: http://${spring.security.user.name}:${spring.security.user.password}@${eureka.instance.hostname}:${server.port}/eureka/
-
-  server:
-    enable-self-preservation: true   # Protect against network instability
-    eviction-interval-timer-in-ms: 60000  # Cleanup interval (1 minute)
-    response-cache-update-interval-ms: 30000  # Client refresh interval
 
 # Security Configuration Recommendations:
 # 1. Enable HTTPS for production environments
