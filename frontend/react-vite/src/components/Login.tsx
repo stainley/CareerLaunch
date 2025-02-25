@@ -34,20 +34,21 @@ const Login: React.FC = () => {
 
     const navigate = useNavigate();
 
-    const URL_AUTH: string = "http://localhost:8080";
+    const API_BASE_URL: string = import.meta.env.VITE_API_URL;
 
     const handleGoogleLogin = () => {
         window.alert('Function under construction');
         throw new Error('Function under construction');
-        //window.location.href = 'http://localhost:8081/oauth2/authorize/google';
+        //window.location.href = `${API_BASE_URL}/oauth2/authorize/google`;
     };
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null); // Clear previous errors
         try {
+            console.log(`API BASE URL: ${API_BASE_URL}`);
             const response = await axios.post(
-                `${URL_AUTH}/auth/login`,
+                `${API_BASE_URL}/auth/login`,
                 {username, password},
                 {
                     headers: {'Content-Type': 'application/json'},
@@ -84,7 +85,7 @@ const Login: React.FC = () => {
         console.log('Sending 2FA verification:', {userId, code: totpCode});
         try {
             const response = await axios.post(
-                `${URL_AUTH}/auth/verify-2fa`,
+                `${API_BASE_URL}/auth/verify-2fa`,
                 {userId, code: totpCode},
                 {
                     headers: {'Content-Type': 'application/json'},
