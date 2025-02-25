@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios, { AxiosError } from 'axios';
 import {
     AppBar,
@@ -20,6 +20,7 @@ import {
     CssBaseline,
     Divider,
     Tooltip,
+    CircularProgress,
 } from '@mui/material';
 import {
     Menu as MenuIcon,
@@ -28,60 +29,89 @@ import {
     Person as PersonIcon,
     Logout as LogoutIcon,
 } from '@mui/icons-material';
+import { useTheme } from '@mui/material/styles';
 
-// Define the expected user data shape
+// Constants
+const API_BASE_URL = import.meta.env.VITE_API_UR || "http://localhost:8080";
+
+//const API_BASE_URL = "http://localhost:8080";
+const DRAWER_WIDTH = 240;
+
+// Types
 interface UserData {
     username: string;
-    [key: string]: string;
+    email?: string;
+    [key: string]: string | undefined;
 }
 
-const URL_AUTH: string = "http://localhost:8080";
-const drawerWidth = 240;
+interface UserFormData {
+    name: string;
+    email: string;
+}
+
+interface DrawerItem {
+    text: string;
+    icon: React.ReactNode;
+    tooltip: string;
+    onClick?: () => void;
+}
 
 const Dashboard: React.FC = () => {
     const navigate = useNavigate();
+    const theme = useTheme();
+    const isLargeScreen = useMediaQuery('(min-width:900px)');
+
+    // State
     const [userData, setUserData] = useState<UserData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
-    const [userInfo, setUserInfo] = useState({ name: '', email: '' });
-    const isLargeScreen = useMediaQuery('(min-width:900px)'); // Adjusted for better breakpoint
+    const [userInfo, setUserInfo] = useState<UserFormData>({ name: '', email: '' });
 
-    const handleDrawerToggle = () => {
-        setMobileOpen(!mobileOpen);
-    };
+    // Handlers
+    const handleDrawerToggle = useCallback(() => {
+        setMobileOpen(prev => !prev);
+    }, []);
 
-    const handleProfileOpen = () => {
+    const handleProfileOpen = useCallback(() => {
         setProfileOpen(true);
-    };
+    }, []);
 
-    const handleProfileClose = () => {
+    const handleProfileClose = useCallback(() => {
         setProfileOpen(false);
-    };
+    }, []);
 
-    const handleUserInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setUserInfo({ ...userInfo, [e.target.name]: e.target.value });
-    };
+    const handleUserInfoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setUserInfo(prev => ({ ...prev, [name]: value }));
+    }, []);
 
-    const handleSave = async () => {
+    const handleLogout = useCallback(() => {
+        localStorage.removeItem('access_token');
+        navigate('/', { replace: true });
+    }, [navigate]);
+
+    const handleSave = useCallback(async () => {
         try {
             const token = localStorage.getItem('access_token');
-            await axios.put(`${URL_AUTH}/api/v1/users/profile`, userInfo, {
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            await axios.put(`${API_BASE_URL}/api/v1/users/profile`, userInfo, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            setUserData({ ...userData!, username: userInfo.name });
+
+            setUserData(prev => prev ? { ...prev, username: userInfo.name } : null);
             handleProfileClose();
         } catch (error) {
             console.error('Failed to update profile:', error);
+            setError('Failed to update profile. Please try again.');
         }
-    };
+    }, [userInfo, handleProfileClose]);
 
-    const handleLogout = () => {
-        localStorage.removeItem('access_token');
-        navigate('/', { replace: true });
-    };
-
+    // Data fetching
     useEffect(() => {
         const fetchUserData = async () => {
             const token = localStorage.getItem('access_token');
@@ -92,14 +122,19 @@ const Dashboard: React.FC = () => {
 
             try {
                 setLoading(true);
-                const response = await axios.get<UserData>(`${URL_AUTH}/auth/userinfo`, {
+                const response = await axios.get<UserData>(`${API_BASE_URL}/auth/userinfo`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
+
                 setUserData(response.data);
-                setUserInfo({ name: response.data.username, email: response.data.username });
+                setUserInfo({
+                    name: response.data.username,
+                    email: response.data.email || response.data.username
+                });
             } catch (err) {
                 const error = err as AxiosError;
                 console.error('Failed to fetch user data:', error);
+
                 if (error.response?.status === 401) {
                     localStorage.removeItem('access_token');
                     navigate('/', { replace: true });
@@ -114,16 +149,18 @@ const Dashboard: React.FC = () => {
         fetchUserData();
     }, [navigate]);
 
-    const drawerItems = [
+    // Drawer items configuration
+    const drawerItems: DrawerItem[] = [
         { text: 'Dashboard', icon: <DashboardIcon />, tooltip: 'View Dashboard' },
         { text: 'Settings', icon: <SettingsIcon />, tooltip: 'Adjust Settings' },
-        { text: 'Profile', icon: <PersonIcon />, tooltip: 'Edit Profile' },
+        { text: 'Profile', icon: <PersonIcon />, tooltip: 'Edit Profile', onClick: handleProfileOpen },
         { text: 'Logout', icon: <LogoutIcon />, onClick: handleLogout, tooltip: 'Sign Out' },
     ];
 
-    const drawer = (
+    // Render drawer content
+    const renderDrawerContent = () => (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: '#f8f9fa' }}>
-            <Toolbar sx={{ bgcolor: 'primary.main', color: 'white' }}>
+            <Toolbar sx={{ bgcolor: theme.palette.primary.main, color: 'white' }}>
                 <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
                     {isLargeScreen ? 'CareerLaunch' : 'CL'}
                 </Typography>
@@ -140,7 +177,10 @@ const Dashboard: React.FC = () => {
                             onKeyUp={(e) => e.key === 'Enter' && item.onClick?.()}
                             sx={{
                                 py: 1.5,
-                                '&:hover': { bgcolor: 'primary.light', color: 'primary.contrastText' },
+                                '&:hover': {
+                                    bgcolor: theme.palette.primary.light,
+                                    color: theme.palette.primary.contrastText
+                                },
                                 transition: 'all 0.3s ease',
                             }}
                         >
@@ -152,7 +192,12 @@ const Dashboard: React.FC = () => {
                             >
                                 {item.icon}
                             </ListItemIcon>
-                            {isLargeScreen && <ListItemText primary={item.text} primaryTypographyProps={{ fontWeight: 500 }} />}
+                            {isLargeScreen && (
+                                <ListItemText
+                                    primary={item.text}
+                                    primaryTypographyProps={{ fontWeight: 500 }}
+                                />
+                            )}
                         </ListItem>
                     </Tooltip>
                 ))}
@@ -161,25 +206,47 @@ const Dashboard: React.FC = () => {
         </Box>
     );
 
+    // Loading state
     if (loading) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-                <Typography variant="h6" color="textSecondary">
+            <Box sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100vh'
+            }}>
+                <CircularProgress color="primary" />
+                <Typography variant="h6" color="textSecondary" sx={{ ml: 2 }}>
                     Loading...
                 </Typography>
             </Box>
         );
     }
 
+    // Error state
     if (error) {
         return (
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 8 }}>
+            <Box sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100vh'
+            }}>
                 <Typography variant="h4" color="error" gutterBottom>
                     Error
                 </Typography>
                 <Typography variant="body1" color="textSecondary">
                     {error}
                 </Typography>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    sx={{ mt: 2 }}
+                    onClick={() => window.location.reload()}
+                >
+                    Retry
+                </Button>
             </Box>
         );
     }
@@ -187,13 +254,15 @@ const Dashboard: React.FC = () => {
     return (
         <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#f0f2f5' }}>
             <CssBaseline />
+
+            {/* App Bar */}
             <AppBar
                 position="fixed"
                 elevation={4}
                 sx={{
-                    width: { sm: `calc(100% - ${drawerWidth}px)` },
-                    ml: { sm: `${drawerWidth}px` },
-                    bgcolor: 'linear-gradient(90deg, #1976d2, #42a5f5)',
+                    width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
+                    ml: { sm: `${DRAWER_WIDTH}px` },
+                    background: 'linear-gradient(90deg, #1976d2, #42a5f5)',
                 }}
             >
                 <Toolbar>
@@ -202,6 +271,7 @@ const Dashboard: React.FC = () => {
                         edge="start"
                         onClick={handleDrawerToggle}
                         sx={{ mr: 2, display: { sm: 'none' } }}
+                        aria-label="open drawer"
                     >
                         <MenuIcon />
                     </IconButton>
@@ -209,13 +279,24 @@ const Dashboard: React.FC = () => {
                         Dashboard
                     </Typography>
                     <Tooltip title="Profile" arrow>
-                        <IconButton onClick={handleProfileOpen} sx={{ p: 0 }}>
-                            <Avatar alt={userData?.username} src="https://via.placeholder.com/40" sx={{ bgcolor: 'secondary.main' }} />
+                        <IconButton
+                            onClick={handleProfileOpen}
+                            sx={{ p: 0 }}
+                            aria-label="open profile"
+                        >
+                            <Avatar
+                                alt={userData?.username}
+                                src="https://via.placeholder.com/40"
+                                sx={{ bgcolor: theme.palette.secondary.main }}
+                            />
                         </IconButton>
                     </Tooltip>
                 </Toolbar>
             </AppBar>
-            <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
+
+            {/* Navigation Drawer */}
+            <Box component="nav" sx={{ width: { sm: DRAWER_WIDTH }, flexShrink: { sm: 0 } }}>
+                {/* Mobile Drawer */}
                 <Drawer
                     variant="temporary"
                     open={mobileOpen}
@@ -223,45 +304,64 @@ const Dashboard: React.FC = () => {
                     ModalProps={{ keepMounted: true }}
                     sx={{
                         display: { xs: 'block', sm: 'none' },
-                        '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth / 3, bgcolor: '#f8f9fa' },
+                        '& .MuiDrawer-paper': {
+                            boxSizing: 'border-box',
+                            width: DRAWER_WIDTH / 1.5,
+                            bgcolor: '#f8f9fa'
+                        },
                     }}
                 >
-                    {drawer}
+                    {renderDrawerContent()}
                 </Drawer>
+
+                {/* Desktop Drawer */}
                 <Drawer
                     variant="permanent"
                     sx={{
                         display: { xs: 'none', sm: 'block' },
-                        '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, bgcolor: '#f8f9fa' },
+                        '& .MuiDrawer-paper': {
+                            boxSizing: 'border-box',
+                            width: DRAWER_WIDTH,
+                            bgcolor: '#f8f9fa'
+                        },
                     }}
                     open
                 >
-                    {drawer}
+                    {renderDrawerContent()}
                 </Drawer>
             </Box>
+
+            {/* Main Content */}
             <Box
                 component="main"
                 sx={{
                     flexGrow: 1,
                     p: 3,
-                    width: { sm: `calc(100% - ${drawerWidth}px)` },
+                    width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
                     mt: '64px',
                     bgcolor: 'white',
                     borderRadius: 2,
                     boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+                    mx: 1.5,
+                    my: 10,
                 }}
             >
-                <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, color: 'primary.main' }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, color: theme.palette.primary.main }}>
                     Welcome, {userData?.username}!
                 </Typography>
                 <Typography variant="body1" color="textSecondary">
                     Your dashboard is ready to help you explore and manage your CareerLaunch experience.
                 </Typography>
                 {/* Add other dashboard content here */}
+
             </Box>
 
             {/* Profile Modal */}
-            <Modal open={profileOpen} onClose={handleProfileClose}>
+            <Modal
+                open={profileOpen}
+                onClose={handleProfileClose}
+                aria-labelledby="profile-modal-title"
+            >
                 <Box
                     sx={{
                         position: 'absolute',
@@ -273,10 +373,15 @@ const Dashboard: React.FC = () => {
                         borderRadius: 3,
                         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
                         p: 4,
-                        backdropFilter: 'blur(5px)',
                     }}
                 >
-                    <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
+                    <Typography
+                        id="profile-modal-title"
+                        variant="h5"
+                        component="h2"
+                        gutterBottom
+                        sx={{ fontWeight: 600, color: theme.palette.primary.main }}
+                    >
                         Profile Information
                     </Typography>
                     <Divider sx={{ mb: 2 }} />

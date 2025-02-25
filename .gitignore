@@ -78,3 +78,6 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 /frontend/react-vite/node_modules
+node_modules
+package.json
+package-lock.json
