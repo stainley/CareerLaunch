@@ -51,6 +51,7 @@ interface UserFormData {
 }
 
 interface DrawerItem {
+  id: string;
   text: string;
   icon: React.ReactNode;
   tooltip: string;
@@ -163,15 +164,17 @@ const Dashboard: React.FC = () => {
 
   // Drawer items configuration
   const drawerItems: DrawerItem[] = [
-    { text: 'Dashboard', icon: <DashboardIcon />, tooltip: 'View Dashboard' },
-    { text: 'Settings', icon: <SettingsIcon />, tooltip: 'Adjust Settings' },
+    { id: 'drawer-item-dashboard', text: 'Dashboard', icon: <DashboardIcon />, tooltip: 'View Dashboard' },
+    { id: 'drawer-item-settings', text: 'Settings', icon: <SettingsIcon />, tooltip: 'Adjust Settings' },
     {
+      id: 'drawer-item-profile',
       text: 'Profile',
       icon: <PersonIcon />,
       tooltip: 'Edit Profile',
       onClick: handleProfileOpen,
     },
     {
+      id: 'drawer-item-logout',
       text: 'Logout',
       icon: <LogoutIcon />,
       onClick: handleLogout,
@@ -201,10 +204,11 @@ const Dashboard: React.FC = () => {
         {drawerItems.map((item) => (
           <Tooltip title={item.tooltip} placement="right" arrow key={item.text}>
             <ListItem
-              button
+              key={item.text}
               onClick={item.onClick}
               role="button"
               tabIndex={0}
+              data-testid={item.id}
               onKeyUp={(e) => e.key === 'Enter' && item.onClick?.()}
               sx={{
                 py: 1.5,
@@ -340,38 +344,42 @@ const Dashboard: React.FC = () => {
         sx={{ width: { sm: DRAWER_WIDTH }, flexShrink: { sm: 0 } }}
       >
         {/* Mobile Drawer */}
-        <Drawer
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{ keepMounted: true }}
-          sx={{
-            display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: DRAWER_WIDTH / 1.5,
-              bgcolor: '#f8f9fa',
-            },
-          }}
-        >
-          {renderDrawerContent()}
-        </Drawer>
-
+        {!isLargeScreen && (
+          <Drawer
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            ModalProps={{ keepMounted: true }}
+            sx={{
+              display: { xs: 'block', sm: 'none' },
+              '& .MuiDrawer-paper': {
+                boxSizing: 'border-box',
+                width: DRAWER_WIDTH / 1.5,
+                bgcolor: '#f8f9fa',
+              },
+            }}
+          >
+            {renderDrawerContent()}
+          </Drawer>
+        )}
         {/* Desktop Drawer */}
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: DRAWER_WIDTH,
-              bgcolor: '#f8f9fa',
-            },
-          }}
-          open
-        >
-          {renderDrawerContent()}
-        </Drawer>
+        {isLargeScreen && (
+          <Drawer
+            variant="permanent"
+            sx={{
+              display: { xs: 'none', sm: 'block' },
+              '& .MuiDrawer-paper': {
+                boxSizing: 'border-box',
+                width: DRAWER_WIDTH,
+                bgcolor: '#f8f9fa',
+              },
+            }}
+            open
+          >
+            {renderDrawerContent()}
+          </Drawer>
+        )}
+
       </Box>
 
       {/* Main Content */}

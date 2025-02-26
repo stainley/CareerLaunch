@@ -5,7 +5,6 @@ import path from 'path';
 export default defineConfig(({ mode }) => {
   console.log(`Running in mode: ${mode}`);
 
-  const isProduction = mode === 'prod' || mode === 'stag';
   return {
     plugins: [react()],
     envDir: '.', // Directory for .env files
@@ -27,7 +26,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      sourcemap: !isProduction, // Enable sourcemaps only in non-prod modes
+      sourcemap: true,
     },
   };
 });

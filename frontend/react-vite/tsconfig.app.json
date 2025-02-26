@@ -15,6 +15,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "baseUrl": "src",
+    "esModuleInterop": true,
     "paths": {
       "@config/*": ["config/*"],
       "@components/*": ["components/*"],
@@ -23,6 +24,7 @@
       "@utils/*": ["utils/*"],
       "@assets/*": ["assets/*"]
     },
+    "types": ["vitest/globals", "@testing-library/jest-dom"], // Add Vitest and jest-dom types
 
     /* Linting */
     "strict": true,
