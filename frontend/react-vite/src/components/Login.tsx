@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import QRCode from 'qrcode';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+// import { ToastContainer, toast } from 'react-toastify';
 
 interface ApiError {
   message?: string;
