@@ -83,3 +83,5 @@ package.json
 package-lock.json
 
 .idea/compiler.xml
+
+/frontend/react-vite/html
