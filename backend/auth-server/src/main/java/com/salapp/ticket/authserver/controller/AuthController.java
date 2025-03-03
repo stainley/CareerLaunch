@@ -1,6 +1,7 @@
 package com.salapp.ticket.authserver.controller;
 
 import com.salapp.ticket.authserver.config.JwtConfig;
+import com.salapp.ticket.authserver.config.JwtUtil;
 import com.salapp.ticket.authserver.dto.*;
 import com.salapp.ticket.authserver.model.User;
 import com.salapp.ticket.authserver.service.TwoFactorService;
@@ -10,12 +11,14 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,11 +30,13 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.Map;
 
+@RequiredArgsConstructor
 @Slf4j
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-    private final JwtConfig jwtConfig;
+    //private final JwtConfig jwtConfig;
+    private final JwtUtil jwtUtil;
     private final UserService userService;
     private final TwoFactorService twoFactorService;
     private final AuthenticationManager authenticationManager;
@@ -39,27 +44,23 @@ public class AuthController {
     @Value("${service.user.uri}")
     private String URI_USERS_SERVICE;
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-
-    @Autowired
-    public AuthController(UserService userService, TwoFactorService twoFactorService, AuthenticationManager authenticationManager, JwtConfig jwtConfig) {
-        this.userService = userService;
-        this.twoFactorService = twoFactorService;
-        this.authenticationManager = authenticationManager;
-        this.jwtConfig = jwtConfig;
-    }
+/*    @Value("${jwt.secret}")
+    private String jwtSecret;*/
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
         String username = credentials.get("username");
         String password = credentials.get("password");
 
+        log.info("Login attempt for {}", username);
         // Authenticate user
+/*
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password));
         SecurityContextHolder.getContext().setAuthentication(authentication);
+*/
 
+        log.info("Login attempt for {}", username);
         // Fetch user and check 2FA status
         User user = userService.findByUsername(username);
         log.info("user found: {}", user);
@@ -115,23 +116,10 @@ public class AuthController {
             userService.save(user);
 
             // Generate JWT
-            String token = generateJwtToken(user.getEmail());
+            String token = jwtUtil.generateJwtToken(user);
             return ResponseEntity.ok(new Verify2faResponse(token));
         }
         return ResponseEntity.badRequest().body("Invalid 2FA Code");
-    }
-
-    private String generateJwtToken(String username) {
-        // Simple JWT generation (replace with your actual JWT logic)
-        /*SecretKey jwtSecretKey = jwtConfig.getJwtSecretKey();
-        log.info("jwt secret key: {}", jwtSecretKey);*/
-        return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 3600000)) // 1 hour
-                //.signWith(SignatureAlgorithm.HS256, jwtSecret) // Replace with a secure key
-                .signWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()), SignatureAlgorithm.HS256)
-                .compact();
     }
 
     @GetMapping("/api/2fa/qr")
@@ -146,8 +134,12 @@ public class AuthController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not authenticated");
         }
-        String username = authentication.getName();
-        User user = userService.findByUsername(username);
+
+        log.info("Authenticated user {}", authentication.getAuthorities());
+
+        String userId = authentication.getName();
+        log.info("User info for user {}", userId);
+        User user = userService.findByUserID(userId);
         return ResponseEntity.ok(new UserInfoResponse(user.getEmail()));
     }
 

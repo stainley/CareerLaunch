@@ -2,19 +2,97 @@ sequenceDiagram
     participant User as User
     participant Frontend as Frontend App
     participant Auth_Service as Auth Service
+    participant User_Service as User Service
     participant OAuth_Provider as OAuth Provider
-    participant Twilio as Twilio (2FA)
+    participant Notification_Service as Notification Service
+    participant Twilio as Twilio (2FA)/Email#Twilio for SMS/Email or OAuth App. Ex.Google Authentication
 
+# OTP: valid for 5 minustes
+# Magic Links: 10 minutes
+
+# Reusable 2FA Verification Block
+    rect rgb(0, 0, 255)
+        note right of Auth_Service: Reusable 2FA Verification
+        alt 2FA Enabled
+            Auth_Service ->> Twilio: Send 2FA Code (SMS/Email)
+            Twilio -->> User: Deliver Code
+            User ->> Frontend: Enter 2FA Code
+            Frontend ->> Auth_Service: Verify 2FA Code
+            alt Code Valid
+                Auth_Service -->> Frontend: Success
+            else Code Invalid
+                Auth_Service -->> Frontend: Error: Invalid 2FA
+            end
+        else 2FA Disabled
+            Auth_Service -->> Frontend: Success (No 2FA)
+        end
+    end
+
+# Scenario 1: Google Login with Optional 2FA
     User ->> Frontend: Click "Login with Google"
-    Frontend ->> OAuth_Provider: Redirect to OAuth Provider
+    Frontend ->> OAuth_Provider: Redirect to OAuth Login
+    OAuth_Provider -->> User: Authenticate (Google UI)
+    User ->> OAuth_Provider: Submit Credentials
     OAuth_Provider -->> Frontend: Return Authorization Code
     Frontend ->> Auth_Service: Exchange Code for Token
     Auth_Service ->> OAuth_Provider: Validate Code
-    OAuth_Provider -->> Auth_Service: Return Access Token
-    Auth_Service -->> Frontend: Issue JWT Token
-    Frontend ->> Auth_Service: Enable 2FA
-    Auth_Service ->> Twilio: Send Verification Code
-    Twilio -->> User: SMS/Email Code
+    alt Code Valid
+        OAuth_Provider -->> Auth_Service: Return User Profile
+        Auth_Service ->> User_Service: Fetch/Create User Profile
+        User_Service -->> Auth_Service: User Data (incl. 2FA Status)
+        note right of Auth_Service: Call Reusable 2FA Block
+        Auth_Service ->> Auth_Service: Execute 2FA Verification
+        Auth_Service ->> Frontend: Issue JWT + Session Token
+    else Code Invalid/Expired
+        OAuth_Provider -->> Auth_Service: Error: Invalid Code
+        Auth_Service -->> Frontend: Error: OAuth Failed
+    end
+
+# Scenario 2: Passless Authentication (Magic Link)
+    User ->> Frontend: Enter Email (Passless)
+    Frontend ->> Auth_Service: Request Magic Link
+    Auth_Service ->> Notification_Service: Send Magic Link (w/ Token, 10-min Timeout)
+    Notification_Service -->> User: Email with Magic Link
+    User ->> Frontend: Click Magic Link
+    Frontend ->> Auth_Service: Submit Token
+    alt Token Valid & Not Expired
+        Auth_Service ->> User_Service: Fetch User Profile (incl. 2FA Status)
+        User_Service -->> Auth_Service: User Data
+        note right of Auth_Service: Call Reusable 2FA Block
+        Auth_Service ->> Auth_Service: Execute 2FA Verification
+        Auth_Service ->> Frontend: Issue JWT + Session Token
+    else Token Invalid/Expired
+        Auth_Service -->> Frontend: Error: Invalid/Expired Link
+    end
+
+# Scenario 3: OTP via Email
+    User ->> Frontend: Enter Email (OTP)
+    Frontend ->> Auth_Service: Request OTP
+    Auth_Service ->> Notification_Service: Send OTP (6-digit, 5-min Timeout)
+    Notification_Service -->> User: Email with OTP
+    User ->> Frontend: Enter OTP
+    Frontend ->> Auth_Service: Submit OTP
+    alt OTP Valid & Not Expired
+        Auth_Service ->> User_Service: Fetch User Profile (incl. 2FA Status)
+        User_Service -->> Auth_Service: User Data
+        note right of Auth_Service: Call Reusable 2FA Block
+        Auth_Service ->> Auth_Service: Execute 2FA Verification
+        Auth_Service ->> Frontend: Issue JWT + Session Token
+    else OTP Invalid/Expired
+        Auth_Service -->> Frontend: Error: Invalid/Expired OTP
+    end
+
+# Optional 2FA Setup (Not During Login)
+    User ->> Frontend: Enable 2FA in Settings
+    Frontend ->> Auth_Service: Initiate 2FA Setup
+    Auth_Service ->> Twilio: Send Verification Code (SMS/Email)
+    Twilio -->> User: Deliver Code
     User ->> Frontend: Enter Verification Code
-    Frontend ->> Auth_Service: Verify Code
-    Auth_Service -->> Frontend: Confirm 2FA Enabled
+    Frontend ->> Auth_Service: Submit Code
+    alt Code Valid
+        Auth_Service ->> User_Service: Update 2FA Status
+        User_Service -->> Auth_Service: Confirmation
+        Auth_Service -->> Frontend: 2FA Enabled
+    else Code Invalid
+        Auth_Service -->> Frontend: Error: Invalid Code
+    end

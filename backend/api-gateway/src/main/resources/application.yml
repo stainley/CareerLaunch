@@ -20,6 +20,8 @@ spring:
           uri: lb://user-service
           predicates:
             - Path=/users/**
+          filters:
+            - JwtHeaderFilter
           #filters:
           #  - RewritePath=/users/(?<segment>.*), /api/users/$\{segment}
 

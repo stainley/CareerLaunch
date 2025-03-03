@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import Dashboard from '@components/Dashboard';
+import Dashboard from '@components/Dashboard/Dashboard';
 import { MemoryRouter } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { expect, vi, it } from 'vitest';

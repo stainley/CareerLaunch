@@ -114,7 +114,7 @@ public class AuthorizationServerConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
+/*    @Bean
     public RegisteredClientRepository registeredClientRepository(PasswordEncoder passwordEncoder) {
         RegisteredClient client = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId("job-tracker-client")
@@ -129,18 +129,18 @@ public class AuthorizationServerConfig {
                 .build();
 
         return new InMemoryRegisteredClientRepository(client);
-    }
+    }*/
 
-    @Bean
+/*    @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
         return AuthorizationServerSettings.builder()
                 .issuer("http://localhost:8081")
                 .authorizationEndpoint("/oauth2/authorize")
                 .tokenEndpoint("/oauth2/token")
                 .build();
-    }
+    }*/
 
-    @Bean
+/*    @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmail(username)
                 .map(user -> org.springframework.security.core.userdetails.User
@@ -149,7 +149,7 @@ public class AuthorizationServerConfig {
                         .roles("USER")
                         .build())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-    }
+    }*/
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
