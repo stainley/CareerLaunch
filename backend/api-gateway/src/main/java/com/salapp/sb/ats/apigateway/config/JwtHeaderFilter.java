@@ -14,6 +14,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class JwtHeaderFilter extends AbstractGatewayFilterFactory<JwtHeaderFilter.Config> {
+    private static final String HEADER_USER_ID = "X-User-Id";
+    private static final String HEADER_ROLES = "X-Roles";
+    private static final String HEADER_PERMISSIONS = "X-Permissions";
 
     public JwtHeaderFilter() {
         super(Config.class);
@@ -21,34 +24,39 @@ public class JwtHeaderFilter extends AbstractGatewayFilterFactory<JwtHeaderFilte
 
     @Override
     public GatewayFilter apply(Config config) {
-        return ((exchange, chain) -> exchange.getPrincipal()
-                .cast(JwtAuthenticationToken.class)
-                .map(jwtAuthToken -> {
-                    String userId = jwtAuthToken.getToken().getSubject();
-                    List<String> roles = jwtAuthToken.getAuthorities().stream()
-                            .filter(auth -> auth.getAuthority().startsWith("ROLE_")) // Filter roles
-                            .map(GrantedAuthority::getAuthority)
-                            .collect(Collectors.toList());
-                    List<String> permissions = jwtAuthToken.getAuthorities().stream()
-                            .filter(auth -> !auth.getAuthority().startsWith("ROLE_")) // Filter permissions
-                            .map(GrantedAuthority::getAuthority)
-                            .collect(Collectors.toList());
+        log.info("JwtHeaderFilter config: {}", config);
+        return ((exchange, chain) -> {
+            log.debug("Principal: {}", exchange.getPrincipal());
 
-                    // Add headers to the request
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.add("X-User-Id", userId);
-                    headers.add("X-Roles", String.join(",", roles));
-                    headers.add("X-Permissions", String.join(",", permissions));
+            return exchange.getPrincipal()
+                    .cast(JwtAuthenticationToken.class)
+                    .map(jwtAuthToken -> {
+                        String userId = jwtAuthToken.getToken().getSubject();
+                        List<String> roles = jwtAuthToken.getAuthorities().stream()
+                                .filter(auth -> auth.getAuthority().startsWith("ROLE_")) // Filter roles
+                                .map(GrantedAuthority::getAuthority)
+                                .collect(Collectors.toList());
+                        List<String> permissions = jwtAuthToken.getAuthorities().stream()
+                                .filter(auth -> !auth.getAuthority().startsWith("ROLE_")) // Filter permissions
+                                .map(GrantedAuthority::getAuthority)
+                                .collect(Collectors.toList());
 
-                    log.info("headers: {}", headers);
+                        // Add headers to the request
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.add(HEADER_USER_ID, userId);
+                        headers.add(HEADER_ROLES, String.join(",", roles));
+                        headers.add(HEADER_PERMISSIONS, String.join(",", permissions));
 
-                    return exchange.mutate()
-                            .request(exchange.getRequest().mutate()
-                                    .headers(httpHeaders -> httpHeaders.addAll(headers))
-                                    .build())
-                            .build();
-                }).defaultIfEmpty(exchange)
-                .flatMap(chain::filter));
+                        log.info("Add headers to request: {}", headers);
+
+                        return exchange.mutate()
+                                .request(exchange.getRequest().mutate()
+                                        .headers(httpHeaders -> httpHeaders.addAll(headers))
+                                        .build())
+                                .build();
+                    }).defaultIfEmpty(exchange)
+                    .flatMap(chain::filter);
+        });
     }
 
     public static class Config {

@@ -4,6 +4,7 @@ import com.salapp.ticket.authserver.model.Permission;
 import com.salapp.ticket.authserver.model.Role;
 import com.salapp.ticket.authserver.model.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -16,11 +17,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Component
@@ -62,23 +61,38 @@ public class JwtUtil {
                 .compact();
     }
 
-    public void validateToken(String token) {
-        log.info("Validate Token");
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(jwtSecret.getBytes())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+    public boolean validateToken(String token) {
+        try {
+            log.info("Validating JWT token");
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(jwtSecret.getBytes())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
 
-        String username = claims.getSubject();
-        List<String> authorities = (List<String>) claims.get("authorities");
+            if (claims.getExpiration().before(new Date())) {
+                log.warn("Token has expired");
+                return false;
+            }
 
-        List<GrantedAuthority> grantedAuthorities = authorities.stream()
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
+            String username = claims.getSubject();
+            @SuppressWarnings("unchecked")
+            List<String> authorities = claims.get("authorities", List.class);
 
-        Authentication auth = new UsernamePasswordAuthenticationToken(username, null, grantedAuthorities);
-        SecurityContextHolder.getContext().setAuthentication(auth);
+            List<GrantedAuthority> grantedAuthorities = authorities != null
+                    ? authorities.stream()
+                    .filter(Objects::nonNull)
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toList())
+                    : Collections.emptyList();
+
+            // Avoid setting SecurityContextHolder if not needed here
+            //Authentication auth = new UsernamePasswordAuthenticationToken(username, null, grantedAuthorities);
+            //SecurityContextHolder.getContext().setAuthentication(auth);
+            return true;
+        } catch (JwtException e) {
+            log.error("Invalid JWT token: {}", e.getMessage());
+            return false;
+        }
     }
-
 }

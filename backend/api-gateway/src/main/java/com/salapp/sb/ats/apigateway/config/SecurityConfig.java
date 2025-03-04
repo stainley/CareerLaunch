@@ -41,8 +41,9 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers("/auth/login", "/users/register", "/auth/signup", "/auth/verify-2fa", "/users/activate", "/users/*/activated").permitAll()
+                        .pathMatchers("/auth/login", "/users/register", "/auth/signup", "/auth/verify-2fa", "/users/activate", "/users/*/activated", "/uploads/**").permitAll()
                         .pathMatchers("users/profile/**").authenticated()
+                        .pathMatchers("/users/profile-picture/**").authenticated()
                         .pathMatchers("/auth/userinfo")
                         .authenticated()
                 )

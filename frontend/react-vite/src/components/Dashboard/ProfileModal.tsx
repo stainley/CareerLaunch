@@ -19,6 +19,8 @@ import { useTheme } from '@mui/material/styles';
 import { UserData, UserFormData } from '../../types';
 import profilePic from '../../assets/user.png';
 import { PhotoCamera } from '@mui/icons-material';
+import axios from 'axios';
+import { API_BASE_URL } from '../../constants';
 
 interface ProfileModalProps {
   open: boolean;
@@ -146,14 +148,48 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
   }, [userInfo, onClose, setUserData]);
 
 
+  const handleImageUpload = async () => {
+    if (!imagePreview || !fileInputRef.current?.files?.[0]) return;
 
-  function setImageDialogOpen(b: boolean) {
+    setLoading(true);
 
-  }
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) throw new Error('No authentication token found');
 
-  function handleImageUpload() {
+      console.log(token);
+      const formData = new FormData();
+      formData.append('file', fileInputRef.current.files[0]);
 
-  }
+      const response = await axios.post(`${API_BASE_URL}/users/profile-picture/`, formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const updatedUser = response.data; // Response is the User object
+      const profilePictureUrl = updatedUser.profilePictureUrl;
+
+      // Update userInfo with the new profile picture URL
+      setUserInfo((prev: ExtendedUserFormData) => ({
+        ...prev,
+        profilePictureUrl,
+      }));
+
+      setUserData((prev) =>
+        prev ? { ...prev, avatarUrl: profilePictureUrl } : null,
+      );
+
+      setImagePreview(null);
+    } catch (error) {
+      console.error('Failed to upload profile picture:', error);
+      setErrors({ submit: 'Failed to upload image. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
+
+  };
 
   return (
     <Modal
@@ -297,7 +333,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                   backgroundColor: theme.palette.grey[200],
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
                 }}
               >
                 {profilePic && !isHovered ? (
@@ -326,9 +362,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                   variant="outlined"
                   onClick={handleImageUpload}
                   disabled={!imagePreview || loading}
-                  startIcon={<PhotoCamera />}
+                  startIcon={loading ? <CircularProgress size={20} /> : <PhotoCamera />}
                 >
-                  Update Picture
+                  {loading ? 'Uploading...' : 'Upload Picture'}
                 </Button>
               </Box>
 

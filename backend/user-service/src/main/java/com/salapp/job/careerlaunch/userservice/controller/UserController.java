@@ -140,6 +140,7 @@ public class UserController implements IUserController {
                 .phoneNumber(userFound.getPhoneNumber())
                 .gender(userFound.getGender().toString())
                 .birthDate(userFound.getBirthDate())
+                .profilePictureUrl(userFound.getProfilePictureUrl() != null ? userFound.getProfilePictureUrl() : null)
                 .professionalSummary(userFound.getProfessionalSummary())
                 .address(mapAddress(userFound))
                 .build();

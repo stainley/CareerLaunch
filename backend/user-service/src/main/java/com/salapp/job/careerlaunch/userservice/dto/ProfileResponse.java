@@ -7,5 +7,5 @@ import java.time.LocalDate;
 
 @Builder
 public record ProfileResponse(String email, String firstName, String lastName, String phoneNumber,
-                              String profilePicture, String professionalSummary, Address address, String gender, LocalDate birthDate) {
+                              String profilePictureUrl, String professionalSummary, Address address, String gender, LocalDate birthDate) {
 }

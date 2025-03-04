@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -44,42 +45,43 @@ public class AuthController {
     @Value("${service.user.uri}")
     private String URI_USERS_SERVICE;
 
-/*    @Value("${jwt.secret}")
-    private String jwtSecret;*/
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
         String username = credentials.get("username");
         String password = credentials.get("password");
 
         log.info("Login attempt for {}", username);
-        // Authenticate user
-/*
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-*/
 
-        log.info("Login attempt for {}", username);
-        // Fetch user and check 2FA status
-        User user = userService.findByUsername(username);
-        log.info("user found: {}", user);
+        try {
+            // Authenticate user
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, password));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        if (!validateAccountActivation(user.getId())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Account not activated");
-        }
+            log.debug("Authentication successful for username={}", username); // Log after auth
 
+            // Fetch user and check 2FA status
+            User user = userService.findByUsername(username);
+            log.info("user found: {}", user.getId());
 
-        if (!user.isTwoFactorEnabled()) {
-            try {
-                String qrCodeData = twoFactorService.generateQrCodeData(user.getEmail(), user.getTotpSecret());
-                return ResponseEntity.ok(new SignupResponse(user.getId(), qrCodeData));
-            } catch (QrGenerationException e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to generate QR code");
+            if (!validateAccountActivation(user.getId())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Account not activated");
             }
+
+
+            if (!user.isTwoFactorEnabled()) {
+                try {
+                    String qrCodeData = twoFactorService.generateQrCodeData(user.getEmail(), user.getTotpSecret());
+                    return ResponseEntity.ok(new SignupResponse(user.getId(), qrCodeData));
+                } catch (QrGenerationException e) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to generate QR code");
+                }
+            }
+            // If 2FA is already enabled, return a status indicating 2FA is required
+            return ResponseEntity.ok(new LoginResponse(user.getId(), "2fa_required"));
+        } catch (BadCredentialsException exception) {
+            return ResponseEntity.status(HttpStatus.OK.value()).body(exception);
         }
-        // If 2FA is already enabled, return a status indicating 2FA is required
-        return ResponseEntity.ok(new LoginResponse(user.getId(), "2fa_required"));
     }
 
     //TODO: change the URI_USERS_SERVICE endpoint to point to the host and port only

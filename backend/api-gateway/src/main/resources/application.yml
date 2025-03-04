@@ -24,6 +24,10 @@ spring:
             - JwtHeaderFilter
           #filters:
           #  - RewritePath=/users/(?<segment>.*), /api/users/$\{segment}
+        - id: uploads
+          uri: lb://user-service
+          predicates:
+            - Path=/uploads/**
 
 eureka:
   instance:

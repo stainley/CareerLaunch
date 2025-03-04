@@ -94,7 +94,9 @@ public class UserService {
         }
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
         String filePath = fileStorageService.storeFile(file);
-        user.setProfilePictureUrl(filePath);
+
+        String gatewayUrl = "http://localhost:8080/uploads/" + filePath;
+        user.setProfilePictureUrl(gatewayUrl);
 
         return userRepository.save(user);
     }
