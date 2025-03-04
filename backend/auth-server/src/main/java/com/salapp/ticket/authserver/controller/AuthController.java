@@ -1,24 +1,18 @@
 package com.salapp.ticket.authserver.controller;
 
-import com.salapp.ticket.authserver.config.JwtConfig;
 import com.salapp.ticket.authserver.config.JwtUtil;
 import com.salapp.ticket.authserver.dto.*;
 import com.salapp.ticket.authserver.model.User;
 import com.salapp.ticket.authserver.service.TwoFactorService;
 import com.salapp.ticket.authserver.service.UserService;
 import dev.samstevens.totp.exceptions.QrGenerationException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,8 +21,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import javax.crypto.SecretKey;
-import java.util.Date;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -36,7 +28,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-    //private final JwtConfig jwtConfig;
+
     private final JwtUtil jwtUtil;
     private final UserService userService;
     private final TwoFactorService twoFactorService;
@@ -44,6 +36,9 @@ public class AuthController {
 
     @Value("${service.user.uri}")
     private String URI_USERS_SERVICE;
+
+    @Value("${api.gateway}")
+    private String API_GATEWAY;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
@@ -88,7 +83,7 @@ public class AuthController {
     private Boolean validateAccountActivation(String userId) {
 
         RestTemplate restTemplate = new RestTemplate();
-        return Boolean.TRUE.equals(restTemplate.getForEntity("http://localhost:8080" + "/users/" + userId + "/activated", Boolean.class).getBody());
+        return Boolean.TRUE.equals(restTemplate.getForEntity(API_GATEWAY + "/users/" + userId + "/activated", Boolean.class).getBody());
 
     }
 

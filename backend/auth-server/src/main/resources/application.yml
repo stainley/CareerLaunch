@@ -42,9 +42,11 @@ logging:
 
 api:
   version: v1
+  gateway: http://localhost:8080
 service:
   user:
     uri: http://localhost:8080/users/register
+
 
 jwt:
   secret: Zr15bQMDn+YTocPI52Td+ZhNcJmPJG1CC9hfK8iApDU=

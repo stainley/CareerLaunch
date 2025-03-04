@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import axios from 'axios';
+import { Typography } from '@mui/material';
 
 interface TwoFactorAuthProps {
   userId: string;
@@ -56,7 +57,10 @@ const TwoFactorAuth: React.FC<TwoFactorAuthProps> = ({ userId, onVerify }) => {
 
   return (
     <div>
-      <h2>Enter 2FA Code</h2>
+      <Typography variant="h5" color="textPrimary" mb="1.2rem">
+        Enter 2FA Code
+      </Typography>
+
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
         {totpCode.map((digit, index) => (
@@ -84,7 +88,7 @@ const TwoFactorAuth: React.FC<TwoFactorAuthProps> = ({ userId, onVerify }) => {
           color: 'white',
           border: 'none',
           borderRadius: '4px',
-          cursor: 'pointer'
+          cursor: 'pointer',
         }}
       >
         Verify
