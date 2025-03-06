@@ -138,7 +138,7 @@ public class UserController implements IUserController {
                 .firstName(userFound.getFirstName())
                 .lastName(userFound.getLastName())
                 .phoneNumber(userFound.getPhoneNumber())
-                .gender(userFound.getGender().toString())
+                .gender(userFound.getGender() != null ? userFound.getGender().toString() : null)
                 .birthDate(userFound.getBirthDate())
                 .profilePictureUrl(userFound.getProfilePictureUrl() != null ? userFound.getProfilePictureUrl() : null)
                 .professionalSummary(userFound.getProfessionalSummary())

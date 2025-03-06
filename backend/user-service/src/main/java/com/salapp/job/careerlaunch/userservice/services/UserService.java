@@ -40,6 +40,7 @@ public class UserService {
         String hashedToken = bCryptPasswordEncoder.encode(rawToken);
         LocalDateTime expiry = LocalDateTime.now().plusHours(TOKEN_EXPIRES_IN_HOURS);
 
+
         user.setActivationToken(hashedToken);
         user.setActivationTokenExpiry(expiry);
         user.setActive(false);

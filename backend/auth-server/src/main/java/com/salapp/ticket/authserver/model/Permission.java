@@ -1,5 +1,6 @@
 package com.salapp.ticket.authserver.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -29,7 +30,7 @@ public class Permission {
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "permissions")
     @ToString.Exclude
-    @JsonManagedReference
+    @JsonBackReference
     private Set<Role> roles = new HashSet<>();
 
 }

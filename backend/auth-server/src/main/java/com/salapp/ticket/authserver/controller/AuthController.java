@@ -2,7 +2,9 @@ package com.salapp.ticket.authserver.controller;
 
 import com.salapp.ticket.authserver.config.JwtUtil;
 import com.salapp.ticket.authserver.dto.*;
+import com.salapp.ticket.authserver.model.Role;
 import com.salapp.ticket.authserver.model.User;
+import com.salapp.ticket.authserver.service.RoleService;
 import com.salapp.ticket.authserver.service.TwoFactorService;
 import com.salapp.ticket.authserver.service.UserService;
 import dev.samstevens.totp.exceptions.QrGenerationException;
@@ -21,7 +23,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -33,6 +39,7 @@ public class AuthController {
     private final UserService userService;
     private final TwoFactorService twoFactorService;
     private final AuthenticationManager authenticationManager;
+    private final RoleService roleService;
 
     @Value("${service.user.uri}")
     private String URI_USERS_SERVICE;
@@ -96,10 +103,10 @@ public class AuthController {
             // Call User-Service to create profile
             RestTemplate restTemplate = new RestTemplate();
             HttpEntity<UserProfileRequest> userProfileEntity = new HttpEntity<>(new UserProfileRequest(user.getId(), request.email()));
-            ResponseEntity<User> userSaved = restTemplate.postForEntity(URI_USERS_SERVICE, userProfileEntity, User.class);
+            restTemplate.postForEntity(URI_USERS_SERVICE, userProfileEntity, Void.class);
 
-            log.info("User saved {}", userSaved.getBody());
-            return ResponseEntity.status(HttpStatus.CREATED.value()).body(userSaved.getBody());
+            log.info("User created successfully");
+            return ResponseEntity.status(HttpStatus.CREATED.value()).body("User created successfully");
         } catch (QrGenerationException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to generate QR code");
         }
@@ -140,6 +147,22 @@ public class AuthController {
         return ResponseEntity.ok(new UserInfoResponse(user.getEmail()));
     }
 
+    @PutMapping("/users/{userId}/roles")
+    public ResponseEntity<?> updateUserRoles(@PathVariable String userId, @RequestBody List<Long> roleIds) {
+        User user = userService.findByUserID(userId);
+        Set<Role> roles = new HashSet<>();
+
+        // Ensure default role is always included
+        Role defaultRole = roleService.findByName("USER")
+                .orElseThrow(() -> new RuntimeException("Default role not found"));
+        if (!roles.stream().anyMatch(r -> r.getName().equals("USER"))) {
+            roles.add(defaultRole);
+        }
+
+        user.setRoles(roles);
+        userService.save(user);
+        return ResponseEntity.ok(user);
+    }
 }
 
 // New DTO for login response
