@@ -128,9 +128,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
       if (!token) throw new Error('No authentication token found');
 
       // TODO: to be implemented
-      /*const response = await axios.put(`${API_BASE_URL}/api/v1/users/profile`, userInfo, {
+      const response = await axios.put(`${API_BASE_URL}/users/profile`, userInfo, {
         headers: { Authorization: `Bearer ${token}` },
-      });*/
+      });
 
 
       setUserData((prev) => prev ? {

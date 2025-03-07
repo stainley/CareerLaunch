@@ -36,7 +36,8 @@ public class JwtHeaderFilter extends AbstractGatewayFilterFactory<JwtHeaderFilte
                                 .filter(auth -> auth.getAuthority().startsWith("ROLE_")) // Filter roles
                                 .map(GrantedAuthority::getAuthority)
                                 .collect(Collectors.toList());
-                        List<String> permissions = jwtAuthToken.getAuthorities().stream()
+
+                        List<String> authorities = jwtAuthToken.getAuthorities().stream()
                                 .filter(auth -> !auth.getAuthority().startsWith("ROLE_")) // Filter permissions
                                 .map(GrantedAuthority::getAuthority)
                                 .collect(Collectors.toList());
@@ -45,7 +46,7 @@ public class JwtHeaderFilter extends AbstractGatewayFilterFactory<JwtHeaderFilte
                         HttpHeaders headers = new HttpHeaders();
                         headers.add(HEADER_USER_ID, userId);
                         headers.add(HEADER_ROLES, String.join(",", roles));
-                        headers.add(HEADER_PERMISSIONS, String.join(",", permissions));
+                        headers.add(HEADER_PERMISSIONS, String.join(",", authorities));
 
                         log.info("Add headers to request: {}", headers);
 

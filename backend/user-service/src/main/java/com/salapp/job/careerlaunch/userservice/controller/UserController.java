@@ -77,19 +77,20 @@ public class UserController implements IUserController {
     }
 
     //TODO: Implement update profile validating if the user have the rights and permission to do it
-    @PutMapping("/{id}/updateProfile")
+    @PutMapping("/profile")
     @Override
     public ResponseEntity<UserResponse> updateUserProfile(
-            @PathVariable String id,
             @Valid @RequestBody UserProfileRequest request,
-            @RequestHeader HttpHeaders headers) {
+            @RequestHeader(HEADER_USER_ID) String userId,
+            @RequestHeader(HEADER_ROLES) String rolesHeader,
+            @RequestHeader(HEADER_PERMISSIONS) String permissionsHeader) {
 
-        String userId = headers.getFirst(HEADER_USER_ID);
+        /*String userId = headers.getFirst(HEADER_USER_ID);
         String rolesHeader = headers.getFirst(HEADER_ROLES);
-        String permissionsHeader = headers.getFirst(HEADER_PERMISSIONS);
+        String permissionsHeader = headers.getFirst(HEADER_PERMISSIONS);*/
 
         if (userId == null || rolesHeader == null || permissionsHeader == null) {
-            log.warn("Missing required headers from API Gateway for user ID: {}", id);
+            log.warn("Missing required headers from API Gateway for user ID: {}", userId);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new UserResponse("Missing authentication headers", null));
         }
@@ -97,24 +98,18 @@ public class UserController implements IUserController {
         List<String> roles = Arrays.asList(rolesHeader.split(","));
         List<String> permissions = Arrays.asList(permissionsHeader.split(","));
 
-        if (!id.equals(userId)) {
-            log.warn("User ID {} attempted to update profile of ID {}", userId, id);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new UserResponse("Cannot modify another user's profile", null));
-        }
-
         if (!permissions.contains("PROFILE_UPDATE")) {
-            log.warn("User ID {} lacks PROFILE_UPDATE permission", id);
+            log.warn("User ID {} lacks PROFILE_UPDATE permission", userId);
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(new UserResponse("Permission denied", null));
         }
 
         try {
-            UserResponse updatedUser = userService.updateUserProfile(id, request);
-            log.info("Successfully updated profile for user ID: {}", id);
+            UserResponse updatedUser = userService.updateUserProfile(userId, request);
+            log.info("Successfully updated profile for user ID: {}", userId);
             return ResponseEntity.ok(updatedUser);
         } catch (Exception e) {
-            log.error("Unexpected error updating profile for user ID: {}", id, e);
+            log.error("Unexpected error updating profile for user ID: {}", userId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new UserResponse("Internal server error", null));
         }
