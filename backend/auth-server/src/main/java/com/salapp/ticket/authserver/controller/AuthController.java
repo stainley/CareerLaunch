@@ -40,6 +40,7 @@ public class AuthController {
     private final TwoFactorService twoFactorService;
     private final AuthenticationManager authenticationManager;
     private final RoleService roleService;
+    private final RestTemplate restTemplate;
 
     @Value("${service.user.uri}")
     private String URI_USERS_SERVICE;
@@ -89,8 +90,7 @@ public class AuthController {
     //TODO: change the URI_USERS_SERVICE endpoint to point to the host and port only
     private Boolean validateAccountActivation(String userId) {
 
-        RestTemplate restTemplate = new RestTemplate();
-        return Boolean.TRUE.equals(restTemplate.getForEntity(API_GATEWAY + "/users/" + userId + "/activated", Boolean.class).getBody());
+        return Boolean.TRUE.equals(restTemplate.getForEntity("lb://user-service/users/" + userId + "/activated", Boolean.class).getBody());
 
     }
 

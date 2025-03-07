@@ -38,7 +38,7 @@ const Login: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const API_BASE_URL: string = import.meta.env.VITE_API_URL;
+  //const API_BASE_URL: string = import.meta.env.VITE_API_URL;
 
   const handleGoogleLogin = () => {
     window.alert('Function under construction');
@@ -50,13 +50,14 @@ const Login: React.FC = () => {
     e.preventDefault();
     setError(null); // Clear previous errors
     try {
-      console.log(`API BASE URL: ${API_BASE_URL}`);
+
       const response = await axios.post(
-        `${API_BASE_URL}/auth/login`,
+        `/auth/login`,
         { username, password },
         {
           headers: { 'Content-Type': 'application/json' },
           withCredentials: true,
+
         },
       );
       console.log('Login response:', response.data); // Debug log

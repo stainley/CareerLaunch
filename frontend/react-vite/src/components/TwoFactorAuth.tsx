@@ -41,7 +41,7 @@ const TwoFactorAuth: React.FC<TwoFactorAuthProps> = ({ userId, onVerify }) => {
     }
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/verify-2fa`, { userId, code },
+      const response = await axios.post(`/auth/verify-2fa`, { userId, code },
         { headers: { 'Content-Type': 'application/json' }, withCredentials: true },
       );
 

@@ -41,7 +41,7 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers("/auth/login", "/users/register", "/auth/signup", "/auth/verify-2fa", "/users/activate", "/users/*/activated", "/uploads/**").permitAll()
+                        .pathMatchers("/auth/login", "/users/register", "/actuator/**", "/auth/signup", "/auth/verify-2fa", "/users/activate", "/users/*/activated", "/uploads/**").permitAll()
                         .pathMatchers("users/profile/**").authenticated()
                         .pathMatchers("/users/profile-picture/**").authenticated()
                         .pathMatchers("/auth/userinfo")
@@ -98,7 +98,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Collections.singletonList("http://localhost:5173")); // Your frontend origin
+        config.setAllowedOrigins(List.of("http://localhost:5173", "https://localhost:5173")); // Your frontend origin
         config.setAllowedMethods(Collections.singletonList("*")); // Allow all methods (GET, POST, etc.)
         config.setAllowedHeaders(Collections.singletonList("*")); // Allow all headers
         config.setAllowCredentials(true); // If you need cookies/auth headers

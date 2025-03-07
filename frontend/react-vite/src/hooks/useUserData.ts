@@ -43,7 +43,7 @@ export const useUserData = () => {
           headers: { Authorization: `Bearer ${token}` },
         });*/
 
-        const response = await axios.get<UserFormData>(`${API_BASE_URL}/users/profile/info`, {
+        const response = await axios.get<UserFormData>(`  /users/profile/info`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

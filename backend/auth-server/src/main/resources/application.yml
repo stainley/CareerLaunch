@@ -32,7 +32,7 @@ eureka:
     fetch-registry: true
     register-with-eureka: true
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka-server:8761/eureka/
 
 logging:
   level:
@@ -42,10 +42,10 @@ logging:
 
 api:
   version: v1
-  gateway: http://localhost:8080
+  gateway: https://api-gateway
 service:
   user:
-    uri: http://localhost:8080/users/register
+    uri: http://user-service/users/register
 
 
 jwt:

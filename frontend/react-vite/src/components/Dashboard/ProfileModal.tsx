@@ -128,7 +128,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
       if (!token) throw new Error('No authentication token found');
 
       // TODO: to be implemented
-      const response = await axios.put(`${API_BASE_URL}/users/profile`, userInfo, {
+      const response = await axios.put(`/users/profile`, userInfo, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -161,7 +161,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
       const formData = new FormData();
       formData.append('file', fileInputRef.current.files[0]);
 
-      const response = await axios.post(`${API_BASE_URL}/users/profile-picture/`, formData, {
+      const response = await axios.post(`/users/profile-picture/`, formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'multipart/form-data',
