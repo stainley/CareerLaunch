@@ -6,13 +6,12 @@ on:
     paths:
       - 'backend/**'
   pull_request:
-    branches: [ main ]  # Trigger on PRs targeting main
     paths:
       - 'backend/**'
 jobs:
   build-and-test:
     runs-on: [ self-hosted, local, java21, maven ]
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref == 'refs/heads/dev')
+    #if: github.event_name == 'push' || github.event_name == 'pull_request'
     strategy:
       matrix:
         #service: [ service-discovery, user-service, api-gateway, notification-service, auth-server ]
