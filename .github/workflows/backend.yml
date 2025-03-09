@@ -56,20 +56,19 @@ jobs:
           cd backend/${{ matrix.service }}
           mvn clean install -DskipTests=false
       # SonarQube analysis
-      - name: SonarQube Scan
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: |
-          cd backend/${{ matrix.service }}
-          mvn sonar:sonar \
-            -Dsonar.projectKey=backend_${{ matrix.service }} \
-            -Dsonar.projectName="${{ matrix.service }} Service" \
-            -Dsonar.java.binaries=target/classes \
-            -Dsonar.sources=src/main/java \
-            -Dsonar.tests=src/test/java \
-            -Dsonar.java.source=21  # Specify Java 21 source compatibility
-            -Dsonar.host.url=${SONAR_HOST_URL} \
+        with:
+          projectBaseDir: backend/${{ matrix.service }}
+          args: >
+            -Dsonar.projectKey=backend_${{ matrix.service }}
+            -Dsonar.projectName="${{ matrix.service }} Service"
+            -Dsonar.java.binaries=target/classes
+            -Dsonar.sources=src/main/java
+            -Dsonar.tests=src/test/java
+            -Dsonar.java.source=21
             -Dsonar.organization=${{ secrets.SONAR_ORG }}
 
       # Optional: Check SonarQube Quality Gate
