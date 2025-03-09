@@ -2,11 +2,11 @@ name: Backend CI
 
 on:
   push:
-    branches-ignore: [ main ]
+    branches-ignore: [ main ]  # Run on all branches except main
     paths:
       - 'backend/**'
-  pull-request:
-    branches: [ main ]
+  pull_request:
+    branches: [ main ]  # Trigger on PRs targeting main
     paths:
       - 'backend/**'
 jobs:
