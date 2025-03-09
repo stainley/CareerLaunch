@@ -15,7 +15,7 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref == 'refs/heads/dev')
     strategy:
       matrix:
-        #service: [ service-discovery, shared-library, user-service, api-gateway, notification-service, auth-server ]
+        #service: [ service-discovery, user-service, api-gateway, notification-service, auth-server ]
         service: [ notification-service ]
     steps:
       - name: Checkout Code
@@ -33,6 +33,12 @@ jobs:
         uses: stCarolas/setup-maven@v5  # Action to install Maven
         with:
           maven-version: '3.9.6'
+
+      # Build and install shared-library first
+      - name: Build Shared Library
+        run: |
+          cd backend/shared-library
+          mvn clean install -DskipTests
 
       # Cache Maven dependencies
       - name: Cache Maven dependencies
