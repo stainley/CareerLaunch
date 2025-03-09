@@ -27,6 +27,12 @@ jobs:
           java-version: '21'
           distribution: 'temurin'  # Eclipse Temurin (OpenJDK)
 
+      # Setup Maven
+      - name: Setup Maven
+        uses: stCarolas/setup-maven@v5  # Action to install Maven
+        with:
+          maven-version: '3.9.6'
+
       # Cache Maven dependencies
       - name: Cache Maven dependencies
         uses: actions/cache@v3
