@@ -1,0 +1,15 @@
+name: FrontEnd CI
+
+on:
+  push:
+    branches-ignore: [ main ]  # Run on all branches except main
+    paths:
+      - 'backend/**'
+  pull_request:
+    branches: [ main ]  # Trigger on PRs targeting main
+    paths:
+      - 'backend/**'
+jobs:
+  build-and-test:
+    runs-on: [ self-hosted, local ]
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref == 'refs/heads/dev')

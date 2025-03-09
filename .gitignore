@@ -86,3 +86,5 @@ package-lock.json
 
 /frontend/react-vite/html
 /uploads/
+
+/infrastructure/ci-cd/.env
