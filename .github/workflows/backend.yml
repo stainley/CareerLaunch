@@ -55,6 +55,14 @@ jobs:
         run: |
           cd backend/${{ matrix.service }}
           mvn clean install -DskipTests=false
+
+      # Build and Analyze
+      - name: Build and analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=stainley_CareerLaunch
+
+
       # SonarQube analysis
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
