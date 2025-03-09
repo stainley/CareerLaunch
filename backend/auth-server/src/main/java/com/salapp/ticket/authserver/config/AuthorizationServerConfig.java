@@ -16,6 +16,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.CorsConfigurer;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -39,7 +41,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.SecretKey;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Configuration
@@ -115,6 +120,35 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
+    public UserDetailsService userDetailsService() {
+        return username -> userRepository.findByEmail(username)
+                .map(user -> {
+                    log.info("user found roles: {}", user.getRoles());
+                    List<GrantedAuthority> authorities = user.getRoles().stream()
+                            .filter(Objects::nonNull)
+                            .flatMap(role -> {
+                                Stream<String> roleAuth = Stream.of("ROLE_" + role.getName().toUpperCase());
+                                Stream<String> permAuth = role.getPermissions() != null
+                                        ? role.getPermissions().stream()
+                                        .filter(Objects::nonNull)
+                                        .map(perm -> perm.getName().toUpperCase())
+                                        : Stream.empty();
+
+                                return Stream.concat(roleAuth, permAuth);
+                            })
+                            .map(SimpleGrantedAuthority::new)
+                            .collect(Collectors.toList());
+
+                    return new org.springframework.security.core.userdetails.User(
+                            user.getEmail(),
+                            user.getPasswordHash(),
+                            authorities
+                    );
+                })
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    }
+
+/*    @Bean
     public RegisteredClientRepository registeredClientRepository(PasswordEncoder passwordEncoder) {
         RegisteredClient client = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId("job-tracker-client")
@@ -129,18 +163,18 @@ public class AuthorizationServerConfig {
                 .build();
 
         return new InMemoryRegisteredClientRepository(client);
-    }
+    }*/
 
-    @Bean
+/*    @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
         return AuthorizationServerSettings.builder()
                 .issuer("http://localhost:8081")
                 .authorizationEndpoint("/oauth2/authorize")
                 .tokenEndpoint("/oauth2/token")
                 .build();
-    }
+    }*/
 
-    @Bean
+/*    @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmail(username)
                 .map(user -> org.springframework.security.core.userdetails.User
@@ -149,7 +183,7 @@ public class AuthorizationServerConfig {
                         .roles("USER")
                         .build())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-    }
+    }*/
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {

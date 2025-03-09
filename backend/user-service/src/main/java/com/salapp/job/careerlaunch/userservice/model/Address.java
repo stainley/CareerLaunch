@@ -28,5 +28,9 @@ public class Address {
     @Size(max = 100)
     private String country;
 
+    @NotBlank
+    @Size(max = 100, message = "State or Province to long")
+    private String stateOrProvince;
+
 
 }

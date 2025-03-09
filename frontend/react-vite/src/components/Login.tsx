@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import QRCode from 'qrcode';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import TwoFactorAuth from '@components/TwoFactorAuth.tsx';
+
 // import { ToastContainer, toast } from 'react-toastify';
 
 interface ApiError {
@@ -36,7 +38,7 @@ const Login: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const API_BASE_URL: string = import.meta.env.VITE_API_URL;
+  //const API_BASE_URL: string = import.meta.env.VITE_API_URL;
 
   const handleGoogleLogin = () => {
     window.alert('Function under construction');
@@ -48,14 +50,15 @@ const Login: React.FC = () => {
     e.preventDefault();
     setError(null); // Clear previous errors
     try {
-      console.log(`API BASE URL: ${API_BASE_URL}`);
+
       const response = await axios.post(
-        `${API_BASE_URL}/auth/login`,
+        `/auth/login`,
         { username, password },
         {
           headers: { 'Content-Type': 'application/json' },
           withCredentials: true,
-        }
+
+        },
       );
       console.log('Login response:', response.data); // Debug log
       if (response.status === 200) {
@@ -78,13 +81,18 @@ const Login: React.FC = () => {
         setError(err.response?.data);
       } else {
         setError(
-          `Login failed: ${getErrorMessage(err, 'Unknown authentication error')}`
+          `Login failed: ${getErrorMessage(err, 'Unknown authentication error')}`,
         );
       }
     }
   };
 
-  const handleTotpVerification = async () => {
+  const handle2faSuccess = (token: string) => {
+    localStorage.setItem('access_token', token);
+    navigate('/dashboard');
+  };
+
+  /*const handleTotpVerification = async () => {
     setError(null);
     console.log('Sending 2FA verification:', { userId, code: totpCode });
     try {
@@ -115,7 +123,7 @@ const Login: React.FC = () => {
       );
       console.error('2FA error:', err);
     }
-  };
+  };*/
 
   return (
     <div style={styles.container}>
@@ -134,7 +142,11 @@ const Login: React.FC = () => {
                 <img src={qrCode} alt="QR Code" style={styles.qrImage} />
               </>
             )}
-            <input
+            <TwoFactorAuth
+              userId={userId}
+              onVerify={handle2faSuccess}
+            />
+            {/*<input
               value={totpCode}
               onChange={(e) => setTotpCode(e.target.value)}
               placeholder="Enter 6-digit code"
@@ -142,7 +154,7 @@ const Login: React.FC = () => {
             />
             <button onClick={handleTotpVerification} style={styles.button}>
               Verify 2FA
-            </button>
+            </button>*/}
           </div>
         ) : (
           <form onSubmit={handleLogin} style={styles.form}>
@@ -206,7 +218,6 @@ const Login: React.FC = () => {
   );
 };
 
-// Styles (unchanged)
 const styles = {
   container: {
     display: 'flex',

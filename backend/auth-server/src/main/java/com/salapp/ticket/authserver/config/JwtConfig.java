@@ -1,12 +1,16 @@
 package com.salapp.ticket.authserver.config;
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.crypto.SecretKey;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.Date;
 
 @Configuration
 public class JwtConfig {
@@ -30,4 +34,6 @@ public class JwtConfig {
     public SecretKey getJwtSecretKey() {
         return JWT_SECRET_KEY;
     }
+
+
 }

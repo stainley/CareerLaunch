@@ -20,7 +20,7 @@ eureka:
     register-with-eureka: false      # Disable self-registration
     fetch-registry: false            # Disable client behavior
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka-server:8761/eureka/
   #server:
     #enable-self-preservation: true   # Protect against network instability
     #eviction-interval-timer-in-ms: 60000  # Cleanup interval (1 minute)
