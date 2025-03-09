@@ -63,7 +63,7 @@ jobs:
         with:
           projectBaseDir: backend/${{ matrix.service }}
           args: >
-            -Dsonar.projectKey=backend_${{ matrix.service }}
+            -Dsonar.projectKey=${{ matrix.service }}
             -Dsonar.projectName="${{ matrix.service }} Service"
             -Dsonar.java.binaries=target/classes
             -Dsonar.sources=src/main/java
