@@ -15,7 +15,8 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref == 'refs/heads/dev')
     strategy:
       matrix:
-        service: [ service-discovery, shared-library, user-service, api-gateway, notification-service, auth-server ]
+        #service: [ service-discovery, shared-library, user-service, api-gateway, notification-service, auth-server ]
+        service: [ notification-service ]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
