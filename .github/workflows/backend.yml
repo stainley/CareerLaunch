@@ -33,6 +33,9 @@ jobs:
         with:
           maven-version: '3.9.6'
 
+      - name: Debug SonarQube URL
+        run: echo "SONAR_HOST_URL is $SONAR_HOST_URL"
+
       # Build and install shared-library first
       - name: Build Shared Library
         run: |
