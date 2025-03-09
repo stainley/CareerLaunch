@@ -1,9 +1,12 @@
 package com.salapp.job.careerlaunch.userservice.services;
 
 import com.salapp.career.launch.shared.library.NotificationRequest;
+import com.salapp.job.careerlaunch.userservice.dto.UserProfileRequest;
+import com.salapp.job.careerlaunch.userservice.dto.UserResponse;
 import com.salapp.job.careerlaunch.userservice.exception.UserNotFoundException;
 import com.salapp.job.careerlaunch.userservice.model.User;
 import com.salapp.job.careerlaunch.userservice.repository.UserRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaProducerException;
@@ -36,6 +39,7 @@ public class UserService {
         String rawToken = UUID.randomUUID().toString();
         String hashedToken = bCryptPasswordEncoder.encode(rawToken);
         LocalDateTime expiry = LocalDateTime.now().plusHours(TOKEN_EXPIRES_IN_HOURS);
+
 
         user.setActivationToken(hashedToken);
         user.setActivationTokenExpiry(expiry);
@@ -86,9 +90,15 @@ public class UserService {
     }
 
     public User updateProfilePicture(String userId, MultipartFile file) {
+        if (userId == null) {
+            throw new IllegalArgumentException("userId cannot be null");
+        }
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
         String filePath = fileStorageService.storeFile(file);
-        user.setProfilePictureUrl(filePath);
+
+        String gatewayUrl = "http://localhost:8080/" + filePath;
+        log.info("Uploading profile picture: {} \nFor userId: {}", filePath, userId);
+        user.setProfilePictureUrl(gatewayUrl);
 
         return userRepository.save(user);
     }
@@ -141,5 +151,16 @@ public class UserService {
         } else {
             log.error("Unexpected error: {}", ex.getMessage());
         }
+    }
+
+    public UserResponse updateUserProfile(String userId, UserProfileRequest request) {
+        User userFound = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        userFound.setFirstName(request.firstName());
+        userFound.setLastName(request.lastName());
+        userFound.setPhoneNumber(request.phoneNumber());
+        userFound.setAddress(request.address());
+        userRepository.save(userFound);
+
+        return new UserResponse("User updated successfully", null);
     }
 }

@@ -85,3 +85,6 @@ package-lock.json
 .idea/compiler.xml
 
 /frontend/react-vite/html
+/uploads/
+
+/infrastructure/ci-cd/.env

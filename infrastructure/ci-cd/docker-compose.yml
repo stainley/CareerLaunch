@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  github-runner:
+    image: myoung34/github-runner:latest  # Popular image for GitHub runners
+    environment:
+      - RUNNER_NAME=local-runner
+      - RUNNER_TOKEN=${RUNNER_TOKEN}  # Will be set dynamically
+      - REPO_URL=https://github.com/stainley/CareerLaunch
+      - LABELS=local,java21,maven  # Custom labels for the runner
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # Allows Docker-in-Docker (optional)
+    restart: unless-stopped

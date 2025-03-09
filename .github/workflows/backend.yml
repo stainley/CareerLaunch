@@ -1,0 +1,99 @@
+name: Backend CI
+
+on:
+  push:
+    branches-ignore: [ main ]  # Run on all branches except main
+    paths:
+      - 'backend/**'
+  pull_request:
+    branches: [ main ]  # Trigger on PRs targeting main
+    paths:
+      - 'backend/**'
+jobs:
+  build-and-test:
+    runs-on: [ self-hosted, local, java21, maven ]
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref == 'refs/heads/dev')
+    strategy:
+      matrix:
+        #service: [ service-discovery, shared-library, user-service, api-gateway, notification-service, auth-server ]
+        service: [ notification-service ]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Setup Java 21
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'  # Eclipse Temurin (OpenJDK)
+
+      # Setup Maven
+      - name: Setup Maven
+        uses: stCarolas/setup-maven@v5  # Action to install Maven
+        with:
+          maven-version: '3.9.6'
+
+      # Cache Maven dependencies
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('backend/${{ matrix.service }}/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      # Build and test each microservice
+      - name: Build and Test with Maven
+        run: |
+          cd backend/${{ matrix.service }}
+          mvn clean install -DskipTests=false
+      # SonarQube analysis
+      - name: SonarQube Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}  # e.g., http://sonarqube-server:9000
+        run: |
+          cd backend/${{ matrix.service }}
+          mvn sonar:sonar \
+            -Dsonar.projectKey=backend_${{ matrix.service }} \
+            -Dsonar.projectName="${{ matrix.service }} Service" \
+            -Dsonar.java.binaries=target/classes \
+            -Dsonar.sources=src/main/java \
+            -Dsonar.tests=src/test/java \
+            -Dsonar.java.source=21  # Specify Java 21 source compatibility
+
+      # Optional: Check SonarQube Quality Gate
+      - name: SonarQube Quality Gate
+        uses: sonarsource/sonarqube-quality-gate-action@v1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          scanTimeout: 300  # Timeout in seconds
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        service: [ service-discovery, shared-library, user-service, api-gateway, notification-service, auth-server ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build JAR
+        run: |
+          cd backend/${{ matrix.service }}
+          mvn package -DskipTests=true
+
+      - name: Deploy JAR
+        run: |
+          # Example: SCP to a server
+          scp backend/${{ matrix.service }}/target/*.jar user@your-server:/path/to/deploy
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}  # Add SSH key to GitHub Secrets

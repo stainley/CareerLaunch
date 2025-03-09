@@ -1,5 +1,6 @@
 package com.salapp.job.careerlaunch.userservice.services;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -12,6 +13,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 
+@Slf4j
 @Service
 public class FileStorageService {
 
@@ -32,12 +34,15 @@ public class FileStorageService {
         }
 
         String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+        log.info("Storing file: {}", fileName);
         try {
             Path uploadPath = Paths.get(uploadDir);
             if (!Files.exists(uploadPath)) {
                 Files.createDirectory(uploadPath);
             }
             Path filePath = uploadPath.resolve(fileName);
+            log.info("Storing file: {}", filePath);
+
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
             return filePath.toString();

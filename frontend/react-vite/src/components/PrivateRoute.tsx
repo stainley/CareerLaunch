@@ -1,13 +1,50 @@
 // src/components/PrivateRoute.tsx
-import { Navigate } from 'react-router-dom'; // Ensure only Navigate is imported
-import React from 'react';
+import { Navigate, useLocation } from 'react-router-dom'; // Ensure only Navigate is imported
+import React, { useEffect, useState } from 'react';
 
-const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  // Simple check for now; replace with real auth logic later (e.g., token check)
-  const isAuthenticated = true; // Placeholder; implement actual auth check
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+
+interface PrivateRouteProps {
+  children: React.ReactNode;
+  redirectTo?: string; // Customizable redirect path
+}
+
+const PrivateRoute: React.FC<PrivateRouteProps> = ({
+                                                     children,
+                                                     redirectTo = '/login', // Default redirect path
+                                                   }) => {
+  const location = useLocation();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      try {
+        const token = localStorage.getItem('access_token');
+        if (token) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error(`Error checking authentication: ${error}`);
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkAuth();
+  });
+
+  if (isAuthenticated === null) {
+    return <div>Loading...</div>;
+  }
+
+  return isAuthenticated ? (
+    <>
+      {children}
+    </>) : (
+    <Navigate to={redirectTo}
+              state={{ from: location }}
+              replace />
+  );
 };
 
 export default PrivateRoute;
