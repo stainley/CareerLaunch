@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -91,8 +93,13 @@ jobs:
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           
+          BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
+          
           # Pull latest changes BEFORE making modifications
           # git pull --rebase origin ${{ github.ref_name }}
+          # Sync with remote branch
+          git fetch origin $BRANCH_NAME
+          git rebase origin/$BRANCH_NAME || { echo "Rebase failed"; exit 1; }
           
           SERVICE="${{ matrix.service }}"
           STATUS="${{ steps.quality-gate.outputs.QUALITY_GATE_STATUS }}"
@@ -131,7 +138,7 @@ jobs:
           
           # Commit and push changes
           # Push changes to the PR branch
-          BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
+          # BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
           git add README.md
           git commit -m "Update Quality Gate badge for ${SERVICE}" || echo "No changes to commit"
           #git push "https://${GH_TOKEN}@github.com/stainley/CareerLaunch.git" HEAD:${{ github.ref_name }} || echo "Push failed"

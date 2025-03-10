@@ -61,7 +61,6 @@ public class NotificationService {
 
         return switch (messageType) {
             case "activation" -> {
-                //context.setVariable("activationLink", mainServiceUrl + "/users/activate?token=" + data.getToken());
                 context.setVariable("activationLink", mainServiceUrl + "/activate?token=" + data.getToken());
                 context.setVariable("expiryDate", data.getExpiry());
                 yield templateEngine.process("activation-email", context);
