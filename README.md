@@ -221,5 +221,3 @@ For inquiries, suggestions, or support, please contact:
 
 ## 🌍 Quality Status
 
-- **notification-service**:
-  - ![Quality Gate Status for notification-service](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
