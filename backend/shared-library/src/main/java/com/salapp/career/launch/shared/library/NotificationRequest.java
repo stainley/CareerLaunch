@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
  * and delivering notifications through various channels within the enterprise ecosystem.
  * Designed for JSON serialization/deserialization and validated against enterprise
  * notification standards.
- *
+ * <br/>
  * @author Stainley Lebron
  * @version 1.0.0
  * @since 2025.2.23
