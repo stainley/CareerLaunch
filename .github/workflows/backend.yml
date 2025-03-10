@@ -99,18 +99,21 @@ jobs:
           
           # Add debug logging to verify the status
           echo "DEBUG: STATUS is '$STATUS'"
-          
+          STATUS_MESSAGE=""
           # Determine badge details
-          if [ "$STATUS" = "OK" ]; then            
+          if [ "$STATUS" = "OK" ]; then     
+            STATUS_MESSAGE="passed"
             BADGE_COLOR="green"
-          elif [ "$STATUS" = "ERROR" ]; then            
+          elif [ "$STATUS" = "ERROR" ]; then
+            STATUS_MESSAGE="failed"
             BADGE_COLOR="red"
-          else            
+          else
+            STATUS_MESSAGE="no executed"
             BADGE_COLOR="yellow"
           fi
           
           # Create properly formatted badge markdown
-          BADGE_URL="https://img.shields.io/badge/quality_gate-passed-${BADGE_COLOR}?logo=sonarqube&labelColor=grey"
+          BADGE_URL="https://img.shields.io/badge/quality_gate-${STATUS_MESSAGE}-${BADGE_COLOR}?logo=sonarqube&labelColor=grey"
           ESCAPED_URL=$(echo "$BADGE_URL" | sed 's/&/\\&/g')  # Escape & for sed
           BADGE_MARKDOWN="- **${SERVICE}**:  \n  ![Quality Gate Status](${ESCAPED_URL})"
           
