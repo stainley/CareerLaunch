@@ -81,7 +81,7 @@ jobs:
 
       - name: Update README with Quality Gate Badge
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           SERVICE="${{ matrix.service }}"
           STATUS="${{ steps.quality-gate.outputs.QUALITY_GATE_STATUS }}"
