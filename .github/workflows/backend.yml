@@ -144,6 +144,10 @@ jobs:
           #git push "https://${GH_TOKEN}@github.com/stainley/CareerLaunch.git" HEAD:${{ github.ref_name }} || echo "Push failed"
           git push "https://${GH_TOKEN}@github.com/stainley/CareerLaunch.git" HEAD:${BRANCH_NAME} || echo "Push failed"
 
+      - name: Fail Pipeline on Quality Gate Error
+        if: steps.quality-gate.outputs.QUALITY_GATE_STATUS != 'OK'
+        run: exit 1
+
   deploy:
     needs: build-and-test
     runs-on: ubuntu-latest
