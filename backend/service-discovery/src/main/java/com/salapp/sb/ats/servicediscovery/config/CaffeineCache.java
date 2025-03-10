@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * to enable caching functionality using the Caffeine cache implementation.
  *
  * @author Stainley Lebron
- * @since 1.0
+ * @since 1.0.0
  */
 @Configuration
 public class CaffeineCache {
