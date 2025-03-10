@@ -32,7 +32,7 @@ jobs:
           maven-version: '3.9.6'
 
       - name: Debug SonarQube URL
-        run: echo "SONAR_HOST_URL is $SONAR_HOST_URL"
+        run: echo "SONAR_HOST_URL is $LOCAL_SONAR_HOST_URL"
 
       - name: Build Shared Library
         run: |
@@ -53,8 +53,8 @@ jobs:
 
       - name: SonarQube Scan
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.LOCAL_SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
         run: |
           cd backend/${{ matrix.service }} && \
           mvn sonar:sonar \
@@ -66,8 +66,8 @@ jobs:
 
       - name: Check SonarCloud Quality Gate Status
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.LOCAL_SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
         run: |
           PROJECT_KEY="com.salapp.career.launch:${{ matrix.service }}"
           BRANCH_NAME="master"
@@ -125,8 +125,8 @@ jobs:
 
       - name: SonarQube Scan (Main Branch)
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.LOCAL_SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
         run: |
           cd backend/${{ matrix.service }} && \
           mvn sonar:sonar \
@@ -138,8 +138,8 @@ jobs:
 
       - name: Check SonarCloud Quality Gate Status (Main Branch)
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.LOCAL_SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
         run: |
           PROJECT_KEY="com.salapp.career.launch:${{ matrix.service }}"
           BRANCH_NAME="master"
