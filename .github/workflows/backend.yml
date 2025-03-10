@@ -70,7 +70,7 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
           PROJECT_KEY="com.salapp.career.launch:${{ matrix.service }}"
-          BRANCH_NAME="${{ github.ref_name }}"
+          BRANCH_NAME="master"
           
           # Query SonarCloud API for Quality Gate status
           STATUS=$(curl -u "${SONAR_TOKEN}:" -s \
@@ -142,7 +142,7 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
           PROJECT_KEY="com.salapp.career.launch:${{ matrix.service }}"
-          BRANCH_NAME="${{ github.ref_name }}"
+          BRANCH_NAME="master"
           
           # Query SonarCloud API for Quality Gate status
           STATUS=$(curl -u "${SONAR_TOKEN}:" -s \
