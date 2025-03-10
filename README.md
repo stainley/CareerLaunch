@@ -228,8 +228,7 @@ For inquiries, suggestions, or support, please contact:
 - LinkedIn: https://www.linkedin.com/in/stainleylebron/
 - GitHub: http://github.com/stainley/
 
+## 🌍 Quality Status
 
-![Quality Gate Status for shared-library](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube![Quality Gate Status for shared-library](https://img.shields.io/badge/quality_gate-passed-yellow?logo=sonarqube&labelColor=grey)labelColor=grey)
-![Quality Gate Status for notification-service](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
 - **notification-service**: ![Quality Gate Status for notification-service](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
 - **shared-library**: ![Quality Gate Status for shared-library](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
