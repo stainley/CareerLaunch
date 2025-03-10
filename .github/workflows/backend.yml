@@ -113,18 +113,19 @@ jobs:
           fi
           
           BADGE_URL="https://img.shields.io/badge/quality_gate-passed-${BADGE_COLOR}?logo=sonarqube&labelColor=grey"
-          BADGE_MARKDOWN="- **${SERVICE}**: ![Quality Gate Status for ${SERVICE}](${BADGE_URL})"
-
-          # Replace or append the badge for the specific service
+          
+          # Escape & characters for sed
+          ESCAPED_BADGE_URL=$(echo "$BADGE_URL" | sed 's/&/\\&/g')
+          BADGE_MARKDOWN="- **${SERVICE}**: ![Quality Gate Status for ${SERVICE}](${ESCAPED_BADGE_URL})"
+          
+          # Replace or append the badge
           if grep -q "^- \*\*${SERVICE}\*\*: " README.md; then
-            sed -i "s|^-\ \*\*${SERVICE}\*\*:.\+|${BADGE_MARKDOWN}|" README.md
+            sed -i "s|^-\ \*\*${SERVICE}\*\*:.*|${BADGE_MARKDOWN}|" README.md
           else
-            echo "${BADGE_MARKDOWN}" >> README.md
+          echo "${BADGE_MARKDOWN}" >> README.md
           fi
           
           # Commit and push changes
-          
-          
           git add README.md
           git commit -m "Update Quality Gate badge for ${SERVICE}" || echo "No changes to commit"
           git push "https://${GH_TOKEN}@github.com/stainley/CareerLaunch.git" HEAD:${{ github.ref_name }} || echo "Push failed"

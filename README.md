@@ -2,19 +2,6 @@
 
 ### Quality Status
 
-Quality Gate statuses for each service, updated by GitHub Actions after running SonarQube scans locally:
-
-- **shared-library
-  **: ![Static Badge](https://img.shields.io/badge/quality_gate-no_executed-yellow?logo=sonarqube&labelColor=grey)
-- **notification-service
-  **: ![Static Badge](https://img.shields.io/badge/quality_gate-no_executed-yellow?logo=sonarqube&labelColor=grey)
-
-### CI/CD:
-
-[![Backend CI](https://github.com/stainley/CareerLaunch/actions/workflows/backend.yml/badge.svg)](https://github.com/stainley/CareerLaunch/actions/workflows/backend.yml)
-
-### Quality Status
-
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=com.salapp.career.launch%3Anotification-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=com.salapp.career.launch%3Anotification-service)
 
 CareerLaunch streamlines your job search by centralizing your application process, automating submissions, and
@@ -228,7 +215,13 @@ For inquiries, suggestions, or support, please contact:
 - LinkedIn: https://www.linkedin.com/in/stainleylebron/
 - GitHub: http://github.com/stainley/
 
+## 🚀 Continues Integration/Continues Deployment:
+
+[![Backend CI](https://github.com/stainley/CareerLaunch/actions/workflows/backend.yml/badge.svg)](https://github.com/stainley/CareerLaunch/actions/workflows/backend.yml)
+
 ## 🌍 Quality Status
 
-- **notification-service**: ![Quality Gate Status for notification-service](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube- **notification-service**: ![Quality Gate Status for notification-service](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)labelColor=grey)
-- **shared-library**: ![Quality Gate Status for shared-library](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube- **shared-library**: ![Quality Gate Status for shared-library](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)labelColor=grey)
+- **notification-service**: 
+  - ![Quality Gate Status for notification-service](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
+- **shared-library**:       
+  - ![Quality Gate Status for shared-library](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
