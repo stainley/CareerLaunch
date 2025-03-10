@@ -3,6 +3,17 @@
 
 
 ### Quality Status
+
+Quality Gate statuses for each service, updated by GitHub Actions after running SonarQube scans locally:
+
+- **shared-library**: ![Static Badge](https://img.shields.io/badge/quality_gate-passed-gree?logo=sonarqube&labelColor=grey)
+- **notification-service**: ![Static Badge](https://img.shields.io/badge/quality_gate-failed-red?logo=sonarqube&labelColor=grey)
+
+### CI/CD:
+
+[![Backend CI](https://github.com/stainley/CareerLaunch/actions/workflows/backend.yml/badge.svg)](https://github.com/stainley/CareerLaunch/actions/workflows/backend.yml)
+
+### Quality Status
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=com.salapp.career.launch%3Anotification-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=com.salapp.career.launch%3Anotification-service)
 
 CareerLaunch streamlines your job search by centralizing your application process, automating submissions, and leveraging AI to tailor your resumes and prepare you for interviews. This platform is your comprehensive hub—from tracking job applications to preparing for interviews—empowering you to land your next opportunity efficiently.
