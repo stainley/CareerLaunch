@@ -73,15 +73,29 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
         run: |
           PROJECT_KEY="com.salapp.career.launch:${{ matrix.service }}"
-          STATUS=$(curl -u "${SONAR_TOKEN}:" -s \
-          "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=${PROJECT_KEY}" | \
-          jq -r '.projectStatus.status')
+          MAX_RETRIES=10
+          RETRY_INTERVAL=60   # seconds
+
+          for ((i=1; i<=MAX_RETRIES; i++)); do
+            STATUS=$(curl -u "${SONAR_TOKEN}:" -s \
+            "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=${PROJECT_KEY}" | \
+            jq -r '.projectStatus.status')
           
-          echo "Quality Gate Status for ${{ matrix.service }}: $STATUS"
+            echo "Attempt $i: Quality Gate Status for ${{ matrix.service }}: $STATUS"
+          
+            if [ "$STATUS" = "OK" ] || [ "$STATUS" = "ERROR" ]; then
+              break
+            fi
+          
+            echo "Waiting for Quality Gate result... ($RETRY_INTERVAL seconds)"
+            sleep $RETRY_INTERVAL
+          done
+
+          echo "FINAL STATUS: $STATUS"
           echo "QUALITY_GATE_STATUS=$STATUS" >> $GITHUB_OUTPUT
           
-          if [ "$STATUS" != "OK" ] && [ "$STATUS" != "ERROR" ]; then
-          echo "Quality Gate status unknown or never executed: $STATUS"
+          if [ "$STATUS" != "OK" ]; then
+            exit 1
           fi
 
       - name: Update README with Quality Gate Badge
