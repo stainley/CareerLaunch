@@ -65,14 +65,26 @@ jobs:
           ls -la .scannerwork && \
           cat .scannerwork/report-task.txt || echo "report-task.txt not found"
 
-      - name: SonarQube Quality Gate
-        uses: sonarsource/sonarqube-quality-gate-action@v1
+      - name: Check SonarCloud Quality Gate Status
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          scanTimeout: 300
-          scan: backend/${{ matrix.service }}/.scannerwork/report-task.txt  # Specify path explicitly
-
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          PROJECT_KEY="com.salapp.ticket:${{ matrix.service }}"
+          BRANCH_NAME="${{ github.ref_name }}"
+          
+          # Query SonarCloud API for Quality Gate status
+          STATUS=$(curl -u "${SONAR_TOKEN}:" -s \
+            "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=${PROJECT_KEY}&branch=${BRANCH_NAME}" | \
+            jq -r '.projectStatus.status')
+          
+          echo "Quality Gate Status: $STATUS"
+          
+          # Fail the job if Quality Gate status is not OK
+          if [ "$STATUS" != "OK" ]; then
+            echo "Quality Gate failed for ${PROJECT_KEY} on branch ${BRANCH_NAME}"
+            exit 1
+          fi
   sonar-main:
     runs-on: [ self-hosted, local, java21, maven ]
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
