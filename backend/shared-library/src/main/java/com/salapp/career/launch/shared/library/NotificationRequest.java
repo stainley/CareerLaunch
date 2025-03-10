@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
  * notification standards.
  *
  * @author Stainley Lebron
- * @version 1.1.0
+ * @version 1.0.0
  * @since 2025.2.23
  */
 @Data
