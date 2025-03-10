@@ -67,8 +67,8 @@ jobs:
         run: |
           cd backend/${{ matrix.service }}
           mvn sonar:sonar \
-            -Dsonar.projectKey=${{ matrix.service }} \
-            -Dsonar.projectName="com.salapp.career.launch:${{ matrix.service }}" \
+            -Dsonar.projectKey=com.salapp.career.launch:${{ matrix.service }} \
+            -Dsonar.projectName="${{ matrix.service }}" \
             -Dsonar.host.url=${SONAR_HOST_URL}
             -Dsonar.token=${SONAR_TOKEN}
       #            -Dsonar.organization=${{ secrets.SONAR_ORG }}
@@ -126,8 +126,8 @@ jobs:
         run: |
           cd backend/${{ matrix.service }}
           mvn sonar:sonar \
-            -Dsonar.projectKey=${{ matrix.service }} \
-            -Dsonar.projectName="com.salapp.career.launch:${{ matrix.service }}" \
+            -Dsonar.projectKey=com.salapp.career.launch:${{ matrix.service }} \
+            -Dsonar.projectName="${{ matrix.service }}" \
             -Dsonar.host.url=${SONAR_HOST_URL}
             -Dsonar.token=${SONAR_TOKEN}
   deploy:
