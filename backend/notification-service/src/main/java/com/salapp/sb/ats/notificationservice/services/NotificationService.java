@@ -99,7 +99,6 @@ public class NotificationService {
                 .sentAt(LocalDateTime.now())
                 .success(success)
                 .build();
-
         notificationRepository.save(notification);
     }
 }

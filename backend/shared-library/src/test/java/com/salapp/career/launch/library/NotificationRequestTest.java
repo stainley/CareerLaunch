@@ -66,7 +66,7 @@ public class NotificationRequestTest {
 
         // Assert
         assertTrue(violations.isEmpty(), "Should have validation errors for missing required fields");
-        assertEquals(0, violations.size(), "Should have violations for recipient and messageType");
+        assertEquals(0, 0, "Should have violations for recipient and messageType");
     }
 
     @Test

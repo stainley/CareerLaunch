@@ -7,7 +7,6 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Represents a standardized notification request payload for cross-service communication.
@@ -18,7 +17,7 @@ import lombok.RequiredArgsConstructor;
  * notification standards.
  *
  * @author Stainley Lebron
- * @version 1.1.0
+ * @version 1.0.0
  * @since 2025.2.23
  */
 @Data
