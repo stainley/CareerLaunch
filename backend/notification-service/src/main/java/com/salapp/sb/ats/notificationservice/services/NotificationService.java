@@ -55,7 +55,7 @@ public class NotificationService {
         }
     }
 
-    private String generateEmailContent(String messageType, NotificationRequest.NotificationData data) {
+    public String generateEmailContent(String messageType, NotificationRequest.NotificationData data) {
         Context context = new Context();
         context.setVariable("firstName", data.getFirstName());
 
@@ -71,7 +71,7 @@ public class NotificationService {
         };
     }
 
-    private void sendEmail(String to, String messageType, String htmlContent) throws MessagingException {
+    public void sendEmail(String to, String messageType, String htmlContent) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
@@ -83,7 +83,7 @@ public class NotificationService {
         log.info("Sent {} notification to {}", messageType, to);
     }
 
-    private String getSubject(String messageType) {
+    public String getSubject(String messageType) {
         return switch (messageType) {
             case "activation" -> "Activate Your CareerLaunch Account";
             case "welcome" -> "Welcome to CareerLaunch!";
@@ -91,7 +91,7 @@ public class NotificationService {
         };
     }
 
-    private void saveNotification(String recipient, String messageType, String content, boolean success) {
+    public void saveNotification(String recipient, String messageType, String content, boolean success) {
         Notification notification = Notification.builder()
                 .recipient(recipient)
                 .messageType(messageType)

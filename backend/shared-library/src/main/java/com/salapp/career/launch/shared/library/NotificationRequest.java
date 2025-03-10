@@ -4,7 +4,10 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Represents a standardized notification request payload for cross-service communication.
@@ -19,6 +22,8 @@ import lombok.Data;
  * @since 2025.2.23
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class NotificationRequest {
     /**
      * Target recipient address in channel-specific format.
@@ -65,6 +70,8 @@ public class NotificationRequest {
      * but must adhere to type-specific formatting when present.
      */
 
+    @AllArgsConstructor
+    @NoArgsConstructor
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class NotificationData {
