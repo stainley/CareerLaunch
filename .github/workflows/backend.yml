@@ -16,7 +16,7 @@ jobs:
       contents: write  # Grant write access
     strategy:
       matrix:
-        service: [ shared-library, notification-service ]
+        service: [ shared-library, notification-service, service-discovery ]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -99,19 +99,23 @@ jobs:
           echo "Timed out waiting for Quality Gate result"
           exit 1
 
+      - name: Clean Up Previous Rebase
+        run: |
+          if [ -d ".git/rebase-merge" ]; then
+            echo "Cleaning up incomplete rebase..."
+            rm -fr ".git/rebase-merge"
+          fi
+
       - name: Update README with Quality Gate Badge
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use built-in token
         run: |
-          #Configure Git
           set -x  # Enable debug output
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           
           BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
           
-          # Pull latest changes BEFORE making modifications
-          # git pull --rebase origin ${{ github.ref_name }}
           # Sync with remote branch
           git fetch origin $BRANCH_NAME
           git rebase origin/$BRANCH_NAME || { echo "Rebase failed"; exit 1; }
@@ -119,10 +123,8 @@ jobs:
           SERVICE="${{ matrix.service }}"
           STATUS="${{ steps.quality-gate.outputs.QUALITY_GATE_STATUS }}"
           
-          # Add debug logging to verify the status
           echo "DEBUG: STATUS is '$STATUS'"
           STATUS_MESSAGE=""
-          # Determine badge details
           if [ "$STATUS" = "OK" ]; then     
             STATUS_MESSAGE="passed"
             BADGE_COLOR="green"
@@ -134,29 +136,22 @@ jobs:
             BADGE_COLOR="yellow"
           fi
           
-          # Create properly formatted badge markdown
           BADGE_URL="https://img.shields.io/badge/quality_gate-${STATUS_MESSAGE}-${BADGE_COLOR}?logo=sonarqube&labelColor=grey"
           ESCAPED_URL=$(echo "$BADGE_URL" | sed 's/&/\\&/g')  # Escape & for sed
           BADGE_MARKDOWN="- **${SERVICE}**:  \n  ![Quality Gate Status](${ESCAPED_URL})"
           
-          # Remove existing entry if present
           if grep -q "^- \*\*${SERVICE}\*\*:" README.md; then
             sed -i "/^- \*\*${SERVICE}\*\*:/ {N; d;}" README.md  # Delete service line + next line
           fi
           
-          # Add new entry at the end of the Quality Status section
           if grep -q "## 🌍 Quality Status" README.md; then
             sed -i "/## 🌍 Quality Status/a \\\n${BADGE_MARKDOWN}" README.md
           else
             echo -e "## 🌍 Quality Status\n\n${BADGE_MARKDOWN}" >> README.md
           fi
           
-          # Commit and push changes
-          # Push changes to the PR branch
-          # BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
           git add README.md
           git commit -m "Update Quality Gate badge for ${SERVICE}" || echo "No changes to commit"
-          #git push "https://${GH_TOKEN}@github.com/stainley/CareerLaunch.git" HEAD:${{ github.ref_name }} || echo "Push failed"
           git push "https://${GH_TOKEN}@github.com/stainley/CareerLaunch.git" HEAD:${BRANCH_NAME} || echo "Push failed"
 
       - name: Fail Pipeline on Quality Gate Error

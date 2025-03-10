@@ -1,9 +1,5 @@
 # 🚀 CareerLaunch – Your End-to-End Job Application and Interview Prep Hub
 
-### Quality Status
-
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=com.salapp.career.launch%3Anotification-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=com.salapp.career.launch%3Anotification-service)
-
 CareerLaunch streamlines your job search by centralizing your application process, automating submissions, and
 leveraging AI to tailor your resumes and prepare you for interviews. This platform is your comprehensive hub—from
 tracking job applications to preparing for interviews—empowering you to land your next opportunity efficiently.
@@ -221,11 +217,19 @@ For inquiries, suggestions, or support, please contact:
 
 ## 🌍 Quality Status
 
+- **service-discovery**:  
+  ![Quality Gate Status](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
+
 - **notification-service**:  
   ![Quality Gate Status](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
 
 - **shared-library**:  
   ![Quality Gate Status](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
+
+
+
+
+
 
 
 
