@@ -65,6 +65,8 @@ jobs:
             -Dsonar.projectName="${{ matrix.service }}" \
             -Dsonar.host.url=${SONAR_HOST_URL} \
             -Dsonar.token=${SONAR_TOKEN}
+          
+          sleep 120  # Wait 2 minutes for SonarQube to process
 
       - name: Check SonarQube Quality Gate Status
         id: quality-gate
@@ -73,16 +75,29 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
         run: |
           PROJECT_KEY="com.salapp.career.launch:${{ matrix.service }}"
-          STATUS=$(curl -u "${SONAR_TOKEN}:" -s \
-          "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=${PROJECT_KEY}" | \
-          jq -r '.projectStatus.status')
+          MAX_RETRIES=20
+          RETRY_INTERVAL=90   # 15 minutes total wait time
+
+          for ((i=1; i<=MAX_RETRIES; i++)); do
+            RESPONSE=$(curl -u "${SONAR_TOKEN}:" -s "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=${PROJECT_KEY}")
+            STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
           
-          echo "Quality Gate Status for ${{ matrix.service }}: $STATUS"
-          echo "QUALITY_GATE_STATUS=$STATUS" >> $GITHUB_OUTPUT
+            echo "Attempt $i: Status = $STATUS"
+            echo "Full response: $RESPONSE"  # Debugging
           
-          if [ "$STATUS" != "OK" ] && [ "$STATUS" != "ERROR" ]; then
-          echo "Quality Gate status unknown or never executed: $STATUS"
-          fi
+            if [ "$STATUS" = "OK" ]; then
+              echo "QUALITY_GATE_STATUS=OK" >> $GITHUB_OUTPUT
+              exit 0
+            elif [ "$STATUS" = "ERROR" ]; then
+              echo "QUALITY_GATE_STATUS=ERROR" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          
+            sleep $RETRY_INTERVAL
+          done
+
+          echo "Timed out waiting for Quality Gate result"
+          exit 1
 
       - name: Update README with Quality Gate Badge
         env:
@@ -143,6 +158,10 @@ jobs:
           git commit -m "Update Quality Gate badge for ${SERVICE}" || echo "No changes to commit"
           #git push "https://${GH_TOKEN}@github.com/stainley/CareerLaunch.git" HEAD:${{ github.ref_name }} || echo "Push failed"
           git push "https://${GH_TOKEN}@github.com/stainley/CareerLaunch.git" HEAD:${BRANCH_NAME} || echo "Push failed"
+
+      - name: Fail Pipeline on Quality Gate Error
+        if: steps.quality-gate.outputs.QUALITY_GATE_STATUS != 'OK'
+        run: exit 1
 
   deploy:
     needs: build-and-test

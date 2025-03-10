@@ -25,8 +25,9 @@ public class NotificationRequestTest {
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
         // Initialize Jakarta Validation
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        validator = factory.getValidator();
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            validator = factory.getValidator();
+        }
     }
 
     @Test
@@ -65,8 +66,8 @@ public class NotificationRequestTest {
         Set<ConstraintViolation<NotificationRequest>> violations = validator.validate(request);
 
         // Assert
-        assertTrue(violations.isEmpty(), "Should have validation errors for missing required fields");
-        assertEquals(0, 0, "Should have violations for recipient and messageType");
+        assertFalse(violations.isEmpty(), "Should have validation errors for missing required fields");
+        assertEquals(2, violations.size(), "Should have violations for recipient and messageType");
     }
 
     @Test
