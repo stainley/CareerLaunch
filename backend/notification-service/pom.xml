@@ -29,8 +29,14 @@
     <properties>
         <java.version>21</java.version>
         <spring-cloud.version>2024.0.0</spring-cloud.version>
+        <!-- SonarCloud Properties -->
+        <sonar.projectKey>com.salapp.career.launch:notification-service</sonar.projectKey>
         <sonar.organization>stainley</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.java.source>21</sonar.java.source>
+        <sonar.java.binaries>target/classes</sonar.java.binaries>
+        <sonar.sources>src/main/java</sonar.sources>
+        <sonar.tests>src/test/java</sonar.tests>
     </properties>
     <dependencies>
         <dependency>
