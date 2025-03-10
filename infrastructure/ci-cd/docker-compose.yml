@@ -9,4 +9,5 @@ services:
       - LABELS=local,java21,maven  # Custom labels for the runner
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock  # Allows Docker-in-Docker (optional)
+    network_mode: host
     restart: unless-stopped
