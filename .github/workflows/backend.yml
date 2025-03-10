@@ -8,17 +8,20 @@ on:
   pull_request:
     paths:
       - 'backend/**'
-  workflow_dispatch:
 
 jobs:
   build-and-test:
     runs-on: [ self-hosted, local, java21, maven ]
+    permissions:
+      contents: write  # Grant write access
     strategy:
       matrix:
         service: [ shared-library, notification-service ]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -32,7 +35,7 @@ jobs:
           maven-version: '3.9.6'
 
       - name: Debug SonarQube URL
-        run: echo "SONAR_HOST_URL is $SONAR_HOST_URL"
+        run: echo "SONAR_HOST_URL is $LOCAL_SONAR_HOST_URL"
 
       - name: Build Shared Library
         run: |
@@ -53,109 +56,112 @@ jobs:
 
       - name: SonarQube Scan
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: |
-          cd backend/${{ matrix.service }} && \
-          mvn sonar:sonar \
-            -Dsonar.projectKey=com.salapp.career.launch:${{ matrix.service }} \
-            -Dsonar.projectName="${{ matrix.service }}" \
-            -Dsonar.host.url=${SONAR_HOST_URL} \
-            -Dsonar.token=${SONAR_TOKEN} \
-            -Dsonar.branch.name=${{ github.ref_name }}
-
-      - name: Check SonarCloud Quality Gate Status
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: |
-          PROJECT_KEY="com.salapp.career.launch:${{ matrix.service }}"
-          BRANCH_NAME="${{ github.ref_name }}"
-          
-          # Query SonarCloud API for Quality Gate status
-          STATUS=$(curl -u "${SONAR_TOKEN}:" -s \
-            "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=${PROJECT_KEY}&branch=${BRANCH_NAME}" | \
-            jq -r '.projectStatus.status')
-          
-          echo "Quality Gate Status: $STATUS"
-          
-          # Fail the job if Quality Gate status is not OK
-          if [ "$STATUS" != "OK" ]; then
-            echo "Quality Gate failed for ${PROJECT_KEY} on branch ${BRANCH_NAME}"
-            exit 1
-          fi
-
-  sonar-main:
-    runs-on: [ self-hosted, local, java21, maven ]
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-    strategy:
-      matrix:
-        service: [ notification-service ]
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-
-      - name: Setup Maven
-        uses: stCarolas/setup-maven@v5
-        with:
-          maven-version: '3.9.6'
-
-      - name: Build Shared Library
-        run: |
-          cd backend/shared-library
-          mvn clean install -DskipTests
-
-      - name: Cache Maven dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('backend/${{ matrix.service }}/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
-
-      - name: Build and Test with Maven
+          SONAR_TOKEN: ${{ secrets.LOCAL_SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
         run: |
           cd backend/${{ matrix.service }}
-          mvn clean install -DskipTests=false
-
-      - name: SonarQube Scan (Main Branch)
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: |
-          cd backend/${{ matrix.service }} && \
           mvn sonar:sonar \
             -Dsonar.projectKey=com.salapp.career.launch:${{ matrix.service }} \
             -Dsonar.projectName="${{ matrix.service }}" \
             -Dsonar.host.url=${SONAR_HOST_URL} \
-            -Dsonar.token=${SONAR_TOKEN} \
-            -Dsonar.branch.name=${{ github.ref_name }}
+            -Dsonar.token=${SONAR_TOKEN}
+          
+          sleep 120  # Wait 2 minutes for SonarQube to process
 
-      - name: Check SonarCloud Quality Gate Status (Main Branch)
+      - name: Check SonarQube Quality Gate Status
+        id: quality-gate
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.LOCAL_SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
         run: |
           PROJECT_KEY="com.salapp.career.launch:${{ matrix.service }}"
-          BRANCH_NAME="${{ github.ref_name }}"
+          MAX_RETRIES=20
+          RETRY_INTERVAL=90   # 15 minutes total wait time
+
+          for ((i=1; i<=MAX_RETRIES; i++)); do
+            RESPONSE=$(curl -u "${SONAR_TOKEN}:" -s "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=${PROJECT_KEY}")
+            STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
           
-          # Query SonarCloud API for Quality Gate status
-          STATUS=$(curl -u "${SONAR_TOKEN}:" -s \
-            "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=${PROJECT_KEY}&branch=${BRANCH_NAME}" | \
-            jq -r '.projectStatus.status')
+            echo "Attempt $i: Status = $STATUS"
+            echo "Full response: $RESPONSE"  # Debugging
           
-          echo "Quality Gate Status: $STATUS"
+            if [ "$STATUS" = "OK" ]; then
+              echo "QUALITY_GATE_STATUS=OK" >> $GITHUB_OUTPUT
+              exit 0
+            elif [ "$STATUS" = "ERROR" ]; then
+              echo "QUALITY_GATE_STATUS=ERROR" >> $GITHUB_OUTPUT
+              exit 1
+            fi
           
-          # Fail the job if Quality Gate status is not OK
-          if [ "$STATUS" != "OK" ]; then
-            echo "Quality Gate failed for ${PROJECT_KEY} on branch ${BRANCH_NAME}"
-            exit 1
+            sleep $RETRY_INTERVAL
+          done
+
+          echo "Timed out waiting for Quality Gate result"
+          exit 1
+
+      - name: Update README with Quality Gate Badge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use built-in token
+        run: |
+          #Configure Git
+          set -x  # Enable debug output
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          
+          BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
+          
+          # Pull latest changes BEFORE making modifications
+          # git pull --rebase origin ${{ github.ref_name }}
+          # Sync with remote branch
+          git fetch origin $BRANCH_NAME
+          git rebase origin/$BRANCH_NAME || { echo "Rebase failed"; exit 1; }
+          
+          SERVICE="${{ matrix.service }}"
+          STATUS="${{ steps.quality-gate.outputs.QUALITY_GATE_STATUS }}"
+          
+          # Add debug logging to verify the status
+          echo "DEBUG: STATUS is '$STATUS'"
+          STATUS_MESSAGE=""
+          # Determine badge details
+          if [ "$STATUS" = "OK" ]; then     
+            STATUS_MESSAGE="passed"
+            BADGE_COLOR="green"
+          elif [ "$STATUS" = "ERROR" ]; then
+            STATUS_MESSAGE="failed"
+            BADGE_COLOR="red"
+          else
+            STATUS_MESSAGE="no executed"
+            BADGE_COLOR="yellow"
           fi
+          
+          # Create properly formatted badge markdown
+          BADGE_URL="https://img.shields.io/badge/quality_gate-${STATUS_MESSAGE}-${BADGE_COLOR}?logo=sonarqube&labelColor=grey"
+          ESCAPED_URL=$(echo "$BADGE_URL" | sed 's/&/\\&/g')  # Escape & for sed
+          BADGE_MARKDOWN="- **${SERVICE}**:  \n  ![Quality Gate Status](${ESCAPED_URL})"
+          
+          # Remove existing entry if present
+          if grep -q "^- \*\*${SERVICE}\*\*:" README.md; then
+            sed -i "/^- \*\*${SERVICE}\*\*:/ {N; d;}" README.md  # Delete service line + next line
+          fi
+          
+          # Add new entry at the end of the Quality Status section
+          if grep -q "## 🌍 Quality Status" README.md; then
+            sed -i "/## 🌍 Quality Status/a \\\n${BADGE_MARKDOWN}" README.md
+          else
+            echo -e "## 🌍 Quality Status\n\n${BADGE_MARKDOWN}" >> README.md
+          fi
+          
+          # Commit and push changes
+          # Push changes to the PR branch
+          # BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
+          git add README.md
+          git commit -m "Update Quality Gate badge for ${SERVICE}" || echo "No changes to commit"
+          #git push "https://${GH_TOKEN}@github.com/stainley/CareerLaunch.git" HEAD:${{ github.ref_name }} || echo "Push failed"
+          git push "https://${GH_TOKEN}@github.com/stainley/CareerLaunch.git" HEAD:${BRANCH_NAME} || echo "Push failed"
+
+      - name: Fail Pipeline on Quality Gate Error
+        if: steps.quality-gate.outputs.QUALITY_GATE_STATUS != 'OK'
+        run: exit 1
 
   deploy:
     needs: build-and-test
