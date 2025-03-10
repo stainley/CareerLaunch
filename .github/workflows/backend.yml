@@ -92,7 +92,7 @@ jobs:
           git config --global user.email "action@github.com"
           
           # Pull latest changes BEFORE making modifications
-          git pull --rebase origin ${{ github.ref_name }}
+          # git pull --rebase origin ${{ github.ref_name }}
           
           SERVICE="${{ matrix.service }}"
           STATUS="${{ steps.quality-gate.outputs.QUALITY_GATE_STATUS }}"
@@ -127,9 +127,12 @@ jobs:
           fi
           
           # Commit and push changes
+          # Push changes to the PR branch
+          BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
           git add README.md
           git commit -m "Update Quality Gate badge for ${SERVICE}" || echo "No changes to commit"
-          git push "https://${GH_TOKEN}@github.com/stainley/CareerLaunch.git" HEAD:${{ github.ref_name }} || echo "Push failed"
+          #git push "https://${GH_TOKEN}@github.com/stainley/CareerLaunch.git" HEAD:${{ github.ref_name }} || echo "Push failed"
+          git push "https://${GH_TOKEN}@github.com/stainley/CareerLaunch.git" HEAD:${BRANCH_NAME} || echo "Push failed"
 
   deploy:
     needs: build-and-test

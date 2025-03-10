@@ -27,7 +27,6 @@ public class NotificationService {
     private final SpringTemplateEngine templateEngine;
     private final NotificationRepository notificationRepository;
 
-    // Change the localhost
     @Value("${app.base-url}")
     private String mainServiceUrl;
 
