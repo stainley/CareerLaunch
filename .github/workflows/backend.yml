@@ -113,11 +113,11 @@ jobs:
           fi
           
           BADGE_URL="https://img.shields.io/badge/quality_gate-passed-${BADGE_COLOR}?logo=sonarqube&labelColor=grey"
-          BADGE_MARKDOWN="![Quality Gate Status for ${SERVICE}](${BADGE_URL})"
-          
-          # Update README.md: Replace or append the badge
-          if grep -q "Quality Gate Status for ${SERVICE}" README.md; then
-            sed -i "s|!\[Quality Gate Status for ${SERVICE}\].*|${BADGE_MARKDOWN}|" README.md
+          BADGE_MARKDOWN="- **${SERVICE}**: ![Quality Gate Status for ${SERVICE}](${BADGE_URL})"
+
+          # Replace or append the badge for the specific service
+          if grep -q "^- \*\*${SERVICE}\*\*: " README.md; then
+            sed -i "s|^-\ \*\*${SERVICE}\*\*:.\+|${BADGE_MARKDOWN}|" README.md
           else
             echo "${BADGE_MARKDOWN}" >> README.md
           fi
