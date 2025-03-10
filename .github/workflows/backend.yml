@@ -8,6 +8,8 @@ on:
   pull_request:
     paths:
       - 'backend/**'
+  workflow_dispatch:
+
 jobs:
   build-and-test:
     runs-on: [ self-hosted, local, java21, maven ]
@@ -33,6 +35,9 @@ jobs:
         with:
           maven-version: '3.9.6'
 
+      - name: Debug SonarQube URL
+        run: echo "SONAR_HOST_URL is $SONAR_HOST_URL"
+
       # Build and install shared-library first
       - name: Build Shared Library
         run: |
@@ -52,20 +57,23 @@ jobs:
         run: |
           cd backend/${{ matrix.service }}
           mvn clean install -DskipTests=false
+
       # SonarQube analysis
       - name: SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}  # e.g., http://sonarqube-server:9000
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
           cd backend/${{ matrix.service }}
           mvn sonar:sonar \
-            -Dsonar.projectKey=backend_${{ matrix.service }} \
+            -Dsonar.projectKey=${{ matrix.service }} \
             -Dsonar.projectName="${{ matrix.service }} Service" \
             -Dsonar.java.binaries=target/classes \
             -Dsonar.sources=src/main/java \
             -Dsonar.tests=src/test/java \
-            -Dsonar.java.source=21  # Specify Java 21 source compatibility
+            -Dsonar.java.source=21 \
+            -Dsonar.host.url=${SONAR_HOST_URL} \
+            -Dsonar.organization=${{ secrets.SONAR_ORG }}
 
       # Optional: Check SonarQube Quality Gate
       - name: SonarQube Quality Gate
@@ -74,6 +82,60 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           scanTimeout: 300  # Timeout in seconds
+
+  sonar-main:
+    runs-on: [ self-hosted, local, java21, maven ]
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    strategy:
+      matrix:
+        service: [ notification-service ]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Maven
+        uses: stCarolas/setup-maven@v5
+        with:
+          maven-version: '3.9.6'
+
+      - name: Build Shared Library
+        run: |
+          cd backend/shared-library
+          mvn clean install -DskipTests
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('backend/${{ matrix.service }}/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      - name: Build and Test with Maven
+        run: |
+          cd backend/${{ matrix.service }}
+          mvn clean install -DskipTests=false
+
+      - name: SonarQube Scan (Main Branch)
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          cd backend/${{ matrix.service }}
+          mvn sonar:sonar \
+            -Dsonar.projectKey=${{ matrix.service }} \
+            -Dsonar.projectName="${{ matrix.service }} Service" \
+            -Dsonar.java.binaries=target/classes \
+            -Dsonar.sources=src/main/java \
+            -Dsonar.tests=src/test/java \
+            -Dsonar.java.source=21 \
+            -Dsonar.host.url=${SONAR_HOST_URL} \
+            -Dsonar.organization=stainley  # Hardcode or use secret
   deploy:
     needs: build-and-test
     runs-on: ubuntu-latest
