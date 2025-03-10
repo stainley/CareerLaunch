@@ -56,27 +56,21 @@ jobs:
           cd backend/${{ matrix.service }}
           mvn clean install -DskipTests=false
 
-      # Build and Analyze
-      - name: Build and analyze
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=stainley_CareerLaunch
-
-
       # SonarQube analysis
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+      - name: SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          projectBaseDir: backend/${{ matrix.service }}
-          args: >
-            -Dsonar.projectKey=${{ matrix.service }}
-            -Dsonar.projectName="${{ matrix.service }} Service"
-            -Dsonar.java.binaries=target/classes
-            -Dsonar.sources=src/main/java
-            -Dsonar.tests=src/test/java
-            -Dsonar.java.source=21
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          cd backend/${{ matrix.service }}
+          mvn sonar:sonar \
+            -Dsonar.projectKey=${{ matrix.service }} \
+            -Dsonar.projectName="${{ matrix.service }} Service" \
+            -Dsonar.java.binaries=target/classes \
+            -Dsonar.sources=src/main/java \
+            -Dsonar.tests=src/test/java \
+            -Dsonar.java.source=21 \
+            -Dsonar.host.url=${SONAR_HOST_URL} \
             -Dsonar.organization=${{ secrets.SONAR_ORG }}
 
       # Optional: Check SonarQube Quality Gate
