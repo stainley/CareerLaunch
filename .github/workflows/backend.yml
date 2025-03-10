@@ -94,7 +94,7 @@ jobs:
             fi
           
             sleep $RETRY_INTERVAL
-          dones
+          done
 
           echo "Timed out waiting for Quality Gate result"
           exit 1
