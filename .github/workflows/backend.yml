@@ -73,13 +73,13 @@ jobs:
             -Dsonar.token=${SONAR_TOKEN}
       #            -Dsonar.organization=${{ secrets.SONAR_ORG }}
 
-      # Optional: Check SonarQube Quality Gate
       - name: SonarQube Quality Gate
         uses: sonarsource/sonarqube-quality-gate-action@v1
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          scanTimeout: 300  # Timeout in seconds
+          scanTimeout: 300
+          scan: backend/${{ matrix.service }}/.scannerwork/report-task.txt  # Specify path explicitly
 
   sonar-main:
     runs-on: [ self-hosted, local, java21, maven ]
