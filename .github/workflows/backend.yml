@@ -16,7 +16,7 @@ jobs:
       contents: write  # Grant write access
     strategy:
       matrix:
-        service: [ shared-library, notification-service ]
+        service: [ shared-library, notification-service, service-discovery ]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
