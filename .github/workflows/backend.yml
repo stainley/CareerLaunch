@@ -61,8 +61,8 @@ jobs:
             -Dsonar.projectKey=com.salapp.career.launch:${{ matrix.service }} \
             -Dsonar.projectName="${{ matrix.service }}" \
             -Dsonar.host.url=${SONAR_HOST_URL} \
-            -Dsonar.token=${SONAR_TOKEN} \
-            -Dsonar.branch.name=${{ github.ref_name }}
+            -Dsonar.token=${SONAR_TOKEN}
+#            -Dsonar.branch.name=${{ github.ref_name }}
 
       - name: Check SonarCloud Quality Gate Status
         env:
@@ -133,8 +133,8 @@ jobs:
             -Dsonar.projectKey=com.salapp.career.launch:${{ matrix.service }} \
             -Dsonar.projectName="${{ matrix.service }}" \
             -Dsonar.host.url=${SONAR_HOST_URL} \
-            -Dsonar.token=${SONAR_TOKEN} \
-            -Dsonar.branch.name=${{ github.ref_name }}
+            -Dsonar.token=${SONAR_TOKEN}
+#            -Dsonar.branch.name=${{ github.ref_name }}
 
       - name: Check SonarCloud Quality Gate Status (Main Branch)
         env:
