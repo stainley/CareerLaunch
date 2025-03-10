@@ -2,50 +2,43 @@ name: Backend CI
 
 on:
   push:
-    branches-ignore: [ main ]  # Run on all branches except main
+    branches-ignore: [ main ]
     paths:
       - 'backend/**'
   pull_request:
     paths:
       - 'backend/**'
-  #Workflow Dispatch
   workflow_dispatch:
 
 jobs:
   build-and-test:
     runs-on: [ self-hosted, local, java21, maven ]
-    #if: github.event_name == 'push' || github.event_name == 'pull_request'
     strategy:
       matrix:
-        #service: [ service-discovery, user-service, api-gateway, notification-service, auth-server ]
         service: [ notification-service ]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Setup Java 21
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           java-version: '21'
-          distribution: 'temurin'  # Eclipse Temurin (OpenJDK)
+          distribution: 'temurin'
 
-      # Setup Maven
       - name: Setup Maven
-        uses: stCarolas/setup-maven@v5  # Action to install Maven
+        uses: stCarolas/setup-maven@v5
         with:
           maven-version: '3.9.6'
 
       - name: Debug SonarQube URL
         run: echo "SONAR_HOST_URL is $SONAR_HOST_URL"
 
-      # Build and install shared-library first
       - name: Build Shared Library
         run: |
           cd backend/shared-library
           mvn clean install -DskipTests
 
-      # Cache Maven dependencies
       - name: Cache Maven dependencies
         uses: actions/cache@v3
         with:
@@ -53,25 +46,24 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('backend/${{ matrix.service }}/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
 
-      # Build and test each microservice
       - name: Build and Test with Maven
         run: |
           cd backend/${{ matrix.service }}
           mvn clean install -DskipTests=false
 
-      # SonarQube analysis
       - name: SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          cd backend/${{ matrix.service }}
+          cd backend/${{ matrix.service }} && \
           mvn sonar:sonar \
-            -Dsonar.projectKey=com.salapp.career.launch:${{ matrix.service }} \
+            -Dsonar.projectKey=com.salapp.ticket:${{ matrix.service }} \
             -Dsonar.projectName="${{ matrix.service }}" \
             -Dsonar.host.url=${SONAR_HOST_URL} \
-            -Dsonar.token=${SONAR_TOKEN}
-      #            -Dsonar.organization=${{ secrets.SONAR_ORG }}
+            -Dsonar.token=${SONAR_TOKEN} && \
+          ls -la .scannerwork && \
+          cat .scannerwork/report-task.txt || echo "report-task.txt not found"
 
       - name: SonarQube Quality Gate
         uses: sonarsource/sonarqube-quality-gate-action@v1
@@ -124,12 +116,15 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          cd backend/${{ matrix.service }}
+          cd backend/${{ matrix.service }} && \
           mvn sonar:sonar \
-            -Dsonar.projectKey=com.salapp.career.launch:${{ matrix.service }} \
+            -Dsonar.projectKey=com.salapp.ticket:${{ matrix.service }} \
             -Dsonar.projectName="${{ matrix.service }}" \
             -Dsonar.host.url=${SONAR_HOST_URL} \
-            -Dsonar.token=${SONAR_TOKEN}
+            -Dsonar.token=${SONAR_TOKEN} && \
+          ls -la .scannerwork && \
+          cat .scannerwork/report-task.txt || echo "report-task.txt not found"
+
   deploy:
     needs: build-and-test
     runs-on: ubuntu-latest
@@ -154,7 +149,6 @@ jobs:
 
       - name: Deploy JAR
         run: |
-          # Example: SCP to a server
           scp backend/${{ matrix.service }}/target/*.jar user@your-server:/path/to/deploy
         env:
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}  # Add SSH key to GitHub Secrets
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
