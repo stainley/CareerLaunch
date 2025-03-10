@@ -88,3 +88,5 @@ package-lock.json
 /uploads/
 
 /infrastructure/ci-cd/.env
+
+backend/shared-library/target

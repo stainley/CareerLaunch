@@ -4,7 +4,10 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Represents a standardized notification request payload for cross-service communication.
@@ -15,10 +18,12 @@ import lombok.Data;
  * notification standards.
  *
  * @author Stainley Lebron
- * @version 1.1.0
+ * @version 1.0.0
  * @since 2025.2.23
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class NotificationRequest {
     /**
      * Target recipient address in channel-specific format.
@@ -33,7 +38,9 @@ public class NotificationRequest {
      * @apiNote Required field for all notification types
      */
     @JsonProperty(required = true)
+    @NotNull(message = "Recipient must not be null") // Add this
     private String recipient;
+
     /**
      * Notification channel type identifier.
      * <p>
@@ -45,7 +52,9 @@ public class NotificationRequest {
      * </ul>
      */
     @JsonProperty(required = true)
+    @NotNull(message = "Message type must not be null") // Add this
     private String messageType;
+
     /**
      * Dynamic content container for notification personalization.
      * <p>
@@ -64,7 +73,8 @@ public class NotificationRequest {
      * and system-generated security tokens. All fields support null values
      * but must adhere to type-specific formatting when present.
      */
-
+    @AllArgsConstructor
+    @NoArgsConstructor
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class NotificationData {
@@ -77,6 +87,7 @@ public class NotificationRequest {
          * @example "María"
          */
         private String firstName;
+
         /**
          * Ephemeral security token for verification workflows.
          * <p>
@@ -90,7 +101,9 @@ public class NotificationRequest {
          * @security Requires encryption at rest and in transit
          */
         @JsonProperty(required = true)
+        @NotNull(message = "Token must not be null") // Add this
         private String token;
+
         /**
          * Token validity expiration timestamp.
          * <p>
@@ -100,6 +113,7 @@ public class NotificationRequest {
          * @example "2024-03-15T23:59:59.999Z"
          */
         @JsonProperty(required = true)
+        @NotNull(message = "Expiry must not be null") // Add this
         @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
         private String expiry;
     }
