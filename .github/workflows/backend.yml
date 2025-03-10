@@ -15,7 +15,7 @@ jobs:
     runs-on: [ self-hosted, local, java21, maven ]
     strategy:
       matrix:
-        service: [ notification-service ]
+        service: [ shared-library, notification-service ]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
