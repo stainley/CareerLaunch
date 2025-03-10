@@ -12,6 +12,8 @@ on:
 jobs:
   build-and-test:
     runs-on: [ self-hosted, local, java21, maven ]
+    permissions:
+      contents: write  # Grant write access
     strategy:
       matrix:
         service: [ shared-library, notification-service ]
@@ -81,7 +83,7 @@ jobs:
 
       - name: Update README with Quality Gate Badge
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use built-in token
         run: |
           SERVICE="${{ matrix.service }}"
           STATUS="${{ steps.quality-gate.outputs.QUALITY_GATE_STATUS }}"
