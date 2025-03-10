@@ -117,7 +117,14 @@ jobs:
           # Remove existing entry if present
           if grep -q "^- \*\*${SERVICE}\*\*:" README.md; then
           sed -i "/^- \*\*${SERVICE}\*\*:/ {N; d;}" README.md  # Delete service line + next line
-          fi  
+          fi
+          
+          # Add new entry at the end of the Quality Status section
+          if grep -q "## 🌍 Quality Status" README.md; then
+            sed -i "/## 🌍 Quality Status/a \\\n${BADGE_MARKDOWN}" README.md
+          else
+            echo -e "## 🌍 Quality Status\n\n${BADGE_MARKDOWN}" >> README.md
+          fi
           
           # Commit and push changes
           git add README.md
