@@ -229,4 +229,4 @@ For inquiries, suggestions, or support, please contact:
 - GitHub: http://github.com/stainley/
 
 
-![Quality Gate Status for shared-library](https://img.shields.io/badge/quality_gate-passed-yellow?logo=sonarqube&labelColor=grey)
+![Quality Gate Status for shared-library](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube![Quality Gate Status for shared-library](https://img.shields.io/badge/quality_gate-passed-yellow?logo=sonarqube&labelColor=grey)labelColor=grey)
