@@ -57,13 +57,11 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
         run: |
           cd backend/${{ matrix.service }}
-          BRANCH_NAME="${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}"
           mvn sonar:sonar \
             -Dsonar.projectKey=com.salapp.career.launch:${{ matrix.service }} \
             -Dsonar.projectName="${{ matrix.service }}" \
             -Dsonar.host.url=${SONAR_HOST_URL} \
-            -Dsonar.token=${SONAR_TOKEN} \
-            -Dsonar.branch.name="${BRANCH_NAME}"
+            -Dsonar.token=${SONAR_TOKEN}
 
       - name: Check SonarQube Quality Gate Status
         env:
@@ -71,16 +69,15 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
         run: |
           PROJECT_KEY="com.salapp.career.launch:${{ matrix.service }}"
-          BRANCH_NAME="${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}"
-
+          # No branch specified, assumes default branch
           STATUS=$(curl -u "${SONAR_TOKEN}:" -s \
-            "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=${PROJECT_KEY}&branch=${BRANCH_NAME}" | \
+            "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=${PROJECT_KEY}" | \
             jq -r '.projectStatus.status')
-
+          
           echo "Quality Gate Status: $STATUS"
-
+          
           if [ "$STATUS" != "OK" ]; then
-            echo "Quality Gate failed for ${PROJECT_KEY} on branch ${BRANCH_NAME}"
+            echo "Quality Gate failed for ${PROJECT_KEY}"
             exit 1
           fi
 
