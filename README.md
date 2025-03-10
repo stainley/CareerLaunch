@@ -221,11 +221,16 @@ For inquiries, suggestions, or support, please contact:
 
 ## 🌍 Quality Status
 
+- **shared-library**:  
+  ![Quality Gate Status](https://img.shields.io/badge/quality_gate-failed-red?logo=sonarqube&labelColor=grey)
+
 - **notification-service**:  
   ![Quality Gate Status](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
 
-- **shared-library**:  
-  ![Quality Gate Status](https://img.shields.io/badge/quality_gate-passed-red?logo=sonarqube&labelColor=grey)
+
+
+
+
 
 
 

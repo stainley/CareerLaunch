@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -91,26 +93,34 @@ jobs:
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           
+          BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
+          
           # Pull latest changes BEFORE making modifications
           # git pull --rebase origin ${{ github.ref_name }}
+          # Sync with remote branch
+          git fetch origin $BRANCH_NAME
+          git rebase origin/$BRANCH_NAME || { echo "Rebase failed"; exit 1; }
           
           SERVICE="${{ matrix.service }}"
           STATUS="${{ steps.quality-gate.outputs.QUALITY_GATE_STATUS }}"
           
           # Add debug logging to verify the status
           echo "DEBUG: STATUS is '$STATUS'"
-          
+          STATUS_MESSAGE=""
           # Determine badge details
-          if [ "$STATUS" = "OK" ]; then            
+          if [ "$STATUS" = "OK" ]; then     
+            STATUS_MESSAGE="passed"
             BADGE_COLOR="green"
-          elif [ "$STATUS" = "ERROR" ]; then            
+          elif [ "$STATUS" = "ERROR" ]; then
+            STATUS_MESSAGE="failed"
             BADGE_COLOR="red"
-          else            
+          else
+            STATUS_MESSAGE="no executed"
             BADGE_COLOR="yellow"
           fi
           
           # Create properly formatted badge markdown
-          BADGE_URL="https://img.shields.io/badge/quality_gate-passed-${BADGE_COLOR}?logo=sonarqube&labelColor=grey"
+          BADGE_URL="https://img.shields.io/badge/quality_gate-${STATUS_MESSAGE}-${BADGE_COLOR}?logo=sonarqube&labelColor=grey"
           ESCAPED_URL=$(echo "$BADGE_URL" | sed 's/&/\\&/g')  # Escape & for sed
           BADGE_MARKDOWN="- **${SERVICE}**:  \n  ![Quality Gate Status](${ESCAPED_URL})"
           
@@ -128,7 +138,7 @@ jobs:
           
           # Commit and push changes
           # Push changes to the PR branch
-          BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
+          # BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
           git add README.md
           git commit -m "Update Quality Gate badge for ${SERVICE}" || echo "No changes to commit"
           #git push "https://${GH_TOKEN}@github.com/stainley/CareerLaunch.git" HEAD:${{ github.ref_name }} || echo "Push failed"
