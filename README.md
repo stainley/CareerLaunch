@@ -8,14 +8,16 @@ tracking job applications to preparing for interviews—empowering you to land y
 
 ## 📋 Table of Contents
 
-- [🌟 Features](#features)
-- [⚙️ Technical Architecture](#technical-architecture)
-- [📊 High-Level Workflow Diagram](#high-level-workflow-diagram)
-- [🚧 Implementation Considerations](#implementation-considerations)
-- [📦 Getting Started](#getting-started)
+- [🌟 Features](#-features)
+- [⚙️ Technical Architecture](#-technical-architecture)
+- [📊 High-Level Workflow Diagram](#-high-level-workflow-diagram)
+- [🚧 Implementation Considerations](#-implementation-considerations)
+- [📦 Getting Started](#-getting-started)
 - [🤝 Contributing](#contributing)
-- [📜 License](#license)
-- [📞 Contact](#contact)
+- [📜 License](#-license)
+- [📞 Contact](#-contact)
+- [🚀 CI/CD](#-continues-integrationcontinues-deployment)
+- [🌍 Quality Status](#-quality-status)
 
 ---
 
@@ -211,13 +213,15 @@ For inquiries, suggestions, or support, please contact:
 - LinkedIn: https://www.linkedin.com/in/stainleylebron/
 - GitHub: http://github.com/stainley/
 
+---
+
 ## 🚀 Continues Integration/Continues Deployment:
 
 [![Backend CI](https://github.com/stainley/CareerLaunch/actions/workflows/backend.yml/badge.svg)](https://github.com/stainley/CareerLaunch/actions/workflows/backend.yml)
 
 [![FrontEnd CI](https://github.com/stainley/CareerLaunch/actions/workflows/frontend.yml/badge.svg)](https://github.com/stainley/CareerLaunch/actions/workflows/frontend.yml)
 
-
+---
 
 ## 🌍 Quality Status
 
@@ -236,9 +240,6 @@ For inquiries, suggestions, or support, please contact:
 
 - **react-vite**:  
   ![Quality Gate Status](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
-
-
-
 
 ### 📱 Mobile
 

@@ -182,6 +182,78 @@ jobs:
         if: steps.quality-gate.outputs.QUALITY_GATE_STATUS != 'OK'
         run: exit 1
 
+      - name: Archive JAR Artifacts
+        if: github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p artifacts
+          cp backend/${{ matrix.service }}/target/*.jar artifacts/${{ matrix.service }}-${{ github.sha }}.jar
+
+          - name: Upload Artifacts
+            if: github.ref == 'refs/heads/main'
+            uses: actions/upload-artifact@v4
+            with:
+              name: ${{ matrix.service }}-artifacts
+              path: artifacts/${{ matrix.service }}-${{ github.sha }}.jar
+  release:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'  # Only run on main branch
+    permissions:
+      contents: write  # Required to create releases
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Set Version from Git Tag or Commit
+        id: version
+        run: |
+          # Use latest tag or fallback to commit SHA
+          VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          if [ "$VERSION" = "v0.0.0" ]; then
+            VERSION="v0.0.0-$(date +%Y%m%d)-${{ github.sha }}"
+          else
+            VERSION=$(echo $VERSION | sed 's/v//')  # Remove 'v' prefix for increment
+            PATCH=$(echo $VERSION | cut -d'.' -f3)
+            MINOR=$(echo $VERSION | cut -d'.' -f2)
+            MAJOR=$(echo $VERSION | cut -d'.' -f1)
+            NEW_PATCH=$((PATCH + 1))
+            VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
+          fi
+          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.version.outputs.RELEASE_VERSION }}
+          release_name: Release v${{ steps.version.outputs.RELEASE_VERSION }}
+          body: |
+            ### CareerLaunch Release v${{ steps.version.outputs.RELEASE_VERSION }}
+            Automated release of backend microservices:
+            - ${{ matrix.service }}
+            - shared-library
+            - notification-service
+            - service-discovery
+            Generated on: ${{ github.event.head_commit.timestamp }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Assets
+        run: |
+          for artifact in artifacts/*/*.jar; do
+            gh release upload v${{ steps.version.outputs.RELEASE_VERSION }} "$artifact" --repo stainley/CareerLaunch
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   deploy:
     needs: build-and-test
     runs-on: ubuntu-latest
