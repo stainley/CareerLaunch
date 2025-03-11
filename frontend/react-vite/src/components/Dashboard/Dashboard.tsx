@@ -1,7 +1,7 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Box, CssBaseline, useMediaQuery } from '@mui/material';
 // import { useTheme } from '@mui/material/styles';
-import { useUserData } from '../../hooks/useUserData';
+import { useUserData } from '@hooks/useUserData.ts';
 import AppHeader from './AppHeader';
 import NavigationDrawer from './NavigationDrawer';
 import MainContent from './MainContent';
@@ -25,7 +25,7 @@ const Dashboard: React.FC = () => {
 
   const handleScreenChange = useCallback((screen: 'dashboard' | 'settings') => {
     setActiveScreen(screen);
-    if(!isLargeScreen) setMobileOpen(false); // Close drawer on mobile after selection
+    if (!isLargeScreen) setMobileOpen(false); // Close drawer on mobile after selection
   }, [isLargeScreen]);
 
   if (loading) return <LoadingState />;
