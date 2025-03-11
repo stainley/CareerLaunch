@@ -168,10 +168,10 @@ jobs:
             sed -i "/^- \*\*${SERVICE}\*\*:/ {N; d;}" README.md  # Delete service line + next line
           fi
           
-          if grep -q "## 🌍 Quality Status" README.md; then
-            sed -i "/## 🌍 Quality Status/a \\\n${BADGE_MARKDOWN}" README.md
+          if grep -q "### 🖧 Backend" README.md; then
+            sed -i "/### 🖧 Backend/a \\\n${BADGE_MARKDOWN}" README.md
           else
-            echo -e "## 🌍 Quality Status\n\n${BADGE_MARKDOWN}" >> README.md
+            echo -e "### 🖧 Backend\n\n${BADGE_MARKDOWN}" >> README.md
           fi
           
           git add README.md

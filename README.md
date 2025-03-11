@@ -215,28 +215,33 @@ For inquiries, suggestions, or support, please contact:
 
 [![Backend CI](https://github.com/stainley/CareerLaunch/actions/workflows/backend.yml/badge.svg)](https://github.com/stainley/CareerLaunch/actions/workflows/backend.yml)
 
+[![FrontEnd CI](https://github.com/stainley/CareerLaunch/actions/workflows/frontend.yml/badge.svg?branch=main)](https://github.com/stainley/CareerLaunch/actions/workflows/frontend.yml)
+
+
+
 ## 🌍 Quality Status
 
-- **shared-library**:  
-  ![Quality Gate Status](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
+### 🖧 Backend
 
-- **notification-service**:  
+- **shared-library**:  
   ![Quality Gate Status](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
 
 - **service-discovery**:  
   ![Quality Gate Status](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
 
+- **notification-service**:  
+  ![Quality Gate Status](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
+
+### 🖥️ Frontend
+
+- **react-vite**:  
+  ![Quality Gate Status](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
 
 
 
+### 📱 Mobile
 
-
-
-
-
-
-
-
+- **Flutter**:
 
 
 
