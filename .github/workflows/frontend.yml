@@ -53,6 +53,22 @@ jobs:
           name: coverage-report
           path: frontend/react-vite/coverage/**/*.*
 
+      - name: Run SonarQube Scan with Bash
+        env:
+          SONAR_TOKEN: ${{ secrets.LOCAL_SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
+        run: |
+          chmod +x node_modules/sonar-scanner/bin/sonar-scanner
+          bash node_modules/sonar-scanner/bin/sonar-scanner \
+            -Dsonar.projectKey=com.salapp.career.launch:react-vite \
+            -Dsonar.sources=src \
+            -Dsonar.tests=src \
+            -Dsonar.test.inclusions="**/*.test.tsx,**/*.test.ts" \
+            -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info \
+            -Dsonar.host.url=${SONAR_HOST_URL} \
+            -Dsonar.login=${SONAR_TOKEN}
+        working-directory: frontend/react-vite
+
       - name: Run SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.LOCAL_SONAR_TOKEN }}
