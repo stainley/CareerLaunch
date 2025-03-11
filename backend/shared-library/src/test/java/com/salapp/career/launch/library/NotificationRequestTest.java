@@ -152,4 +152,59 @@ public class NotificationRequestTest {
         assertNotNull(request.getData().getExpiry());
     }
 
+    @Test
+    void testGettersAndSetters() {
+        NotificationRequest request = new NotificationRequest();
+
+        // Test recipient
+        request.setRecipient("test@example.com");
+        assertEquals("test@example.com", request.getRecipient());
+
+        // Test messageType
+        request.setMessageType("TEST_TYPE");
+        assertEquals("TEST_TYPE", request.getMessageType());
+
+        // Test data
+        NotificationRequest.NotificationData data = new NotificationRequest.NotificationData(
+                "Test", "token123", "2025-01-01T00:00:00.000000"
+        );
+        request.setData(data);
+        assertEquals(data, request.getData());
+    }
+
+    @Test
+    void testToString() {
+        NotificationRequest.NotificationData data = new NotificationRequest.NotificationData(
+                "John", "token123", "2025-01-01T00:00:00.000000"
+        );
+        NotificationRequest request = new NotificationRequest(
+                "john@example.com", "EMAIL", data
+        );
+
+        String expected = "NotificationRequest(recipient=john@example.com, " +
+                "messageType=EMAIL, data=NotificationRequest.NotificationData(firstName=John, " +
+                "token=token123, expiry=2025-01-01T00:00:00.000000))";
+        assertEquals(expected, request.toString());
+    }
+
+    @Test
+    void testEqualsAndHashCode() {
+        NotificationRequest request1 = new NotificationRequest(
+                "user1@example.com", "TYPE_A",
+                new NotificationRequest.NotificationData("User1", "token", "2025-01-01T00:00:00.000000")
+        );
+
+        NotificationRequest request2 = new NotificationRequest(
+                "user1@example.com", "TYPE_A",
+                new NotificationRequest.NotificationData("User1", "token", "2025-01-01T00:00:00.000000")
+        );
+
+        assertEquals(request1, request2);
+        assertEquals(request1.hashCode(), request2.hashCode());
+
+        // Test inequality
+        request2.setRecipient("user2@example.com");
+        assertNotEquals(request1, request2);
+    }
+
 }

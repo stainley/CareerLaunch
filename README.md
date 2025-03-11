@@ -217,14 +217,24 @@ For inquiries, suggestions, or support, please contact:
 
 ## 🌍 Quality Status
 
-- **notification-service**:  
+- **shared-library**:  
   ![Quality Gate Status](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
 
 - **service-discovery**:  
   ![Quality Gate Status](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
 
-- **shared-library**:  
+- **notification-service**:  
   ![Quality Gate Status](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
+
+
+
+
+
+
+
+
+
+
 
 
 

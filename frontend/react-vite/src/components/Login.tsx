@@ -7,16 +7,16 @@ import TwoFactorAuth from '@components/TwoFactorAuth.tsx';
 
 // import { ToastContainer, toast } from 'react-toastify';
 
-interface ApiError {
+interface ApiErrorResponse {
   message?: string;
   error?: string;
-
   [key: string]: unknown;
 }
 
+
 // Error handling utility function
 const getErrorMessage = (error: unknown, defaultMessage: string): string => {
-  if (axios.isAxiosError<ApiError>(error)) {
+  if (axios.isAxiosError<ApiErrorResponse>(error)) {
     return (
       error.response?.data?.message ||
       error.response?.data?.error ||
@@ -32,7 +32,7 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [qrCode, setQrCode] = useState<string>('');
-  const [totpCode, setTotpCode] = useState<string>('');
+  //const [totpCode, setTotpCode] = useState<string>('');
   const [userId, setUserId] = useState<string>('');
   const [show2fa, setShow2fa] = useState<boolean>(false);
 
@@ -77,13 +77,7 @@ const Login: React.FC = () => {
         }
       }
     } catch (err) {
-      if (err.status === 401) {
-        setError(err.response?.data);
-      } else {
-        setError(
-          `Login failed: ${getErrorMessage(err, 'Unknown authentication error')}`,
-        );
-      }
+      setError(`Login failed: ${getErrorMessage(err, 'Authentication error')}`);
     }
   };
 

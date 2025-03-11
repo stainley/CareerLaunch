@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserData, UserFormData } from '../types';
 import axios, { AxiosError } from 'axios';
-import { API_BASE_URL } from '../constants';
 
 export const useUserData = () => {
 
@@ -39,9 +38,6 @@ export const useUserData = () => {
 
       try {
         setLoading(true);
-        /*const response = await axios.get<UserData>(`${API_BASE_URL}/auth/userinfo`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });*/
 
         const response = await axios.get<UserFormData>(`  /users/profile/info`, {
           headers: { Authorization: `Bearer ${token}` },
