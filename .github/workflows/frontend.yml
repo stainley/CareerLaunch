@@ -1,0 +1,51 @@
+name: FrontEnd CI
+
+on:
+  push:
+    branches-ignore: [ main ]
+    paths:
+      - 'frontend/react-vite/**'
+  pull_request:
+    paths:
+      - 'frontend/react-vite/**'
+
+jobs:
+  build-and-test:
+    runs-on: [ self-hosted, local ]
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: frontend/react-vite
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage
+        working-directory: frontend/react-vite
+        env:
+          CI: true
+
+      - name: SonarQube Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.LOCAL_SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
+        run: |
+          cd frontend/react-vite
+          sonar-scanner \
+            -Dsonar.projectKey=com.salapp.career.launch:react-vite \
+            -Dsonar.projectName="React Vite Frontend" \
+            -Dsonar.sources=src \
+            -Dsonar.tests=src \
+            -Dsonar.test.inclusions=**/*.test.tsx,**/*.test.ts \
+            -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info \
+            -Dsonar.host.url=${SONAR_HOST_URL} \
+            -Dsonar.login=${SONAR_TOKEN}
