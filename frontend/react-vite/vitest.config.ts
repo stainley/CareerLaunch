@@ -12,7 +12,6 @@ export default defineConfig({
       reporter: ['text', 'lcov', 'html'],
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
-        '**/*.test.{ts,tsx}',
         'src/vite-env.d.ts',
         '**/__tests__/*',
         '**/*.stories.{ts,tsx}', // Exclude Storybook files if present
@@ -23,6 +22,8 @@ export default defineConfig({
         branches: 70,
         statements: 70,
       },
+      reportsDirectory: 'coverage',
+      reportOnFailure: true,
     },
     reporters: ['html'],
     setupFiles: './src/test/setup.ts',
