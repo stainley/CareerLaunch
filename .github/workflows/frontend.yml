@@ -69,8 +69,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.LOCAL_SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
         run: |
-          export SONAR_TOKEN=${SONAR_TOKEN}
-          export SONAR_HOST_URL=${SONAR_HOST_URL}
+          cd frontend/react-vite  # Move into the correct directory
           sonar-scanner \
             -Dsonar.projectKey=com.salapp.career.launch:react-vite \
             -Dsonar.sources=src \
@@ -78,4 +77,4 @@ jobs:
             -Dsonar.test.inclusions="**/*.test.tsx,**/*.test.ts" \
             -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info \
             -Dsonar.host.url=${SONAR_HOST_URL} \
-            -Dsonar.token=${SONAR_TOKEN}
+            -Dsonar.login=${SONAR_TOKEN}
