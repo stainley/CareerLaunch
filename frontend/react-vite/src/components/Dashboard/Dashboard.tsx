@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import { Box, CssBaseline, useMediaQuery } from '@mui/material';
-// import { useTheme } from '@mui/material/styles';
 import { useUserData } from '@hooks/useUserData.ts';
 import AppHeader from './AppHeader';
 import NavigationDrawer from './NavigationDrawer';
