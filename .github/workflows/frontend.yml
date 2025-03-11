@@ -39,17 +39,19 @@ jobs:
         env:
           CI: true # Ensures tests run in CI mode
         continue-on-error: true
-      - name: Upload test report
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-report
-          path: frontend/react-vite/coverage
+
+      - name: Verify coverage output
+        run: |
+          echo "Checking coverage directory..."
+          ls -la frontend/react-vite/coverage
+          cat frontend/react-vite/coverage/lcov.info
+        if: always() # Always run even if tests fail
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: frontend/react-vite/coverage/lcov.info
+          path: frontend/react-vite/coverage/**
 
       - name: SonarQube Scan
         env:
