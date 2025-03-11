@@ -1,0 +1,80 @@
+name: FrontEnd CI
+
+on:
+  push:
+    branches-ignore: [ main ]
+    paths:
+      - 'frontend/react-vite/**'
+  pull_request:
+    paths:
+      - 'frontend/react-vite/**'
+
+jobs:
+  build-and-test:
+    runs-on: [ self-hosted, local ] # Ensure your self-hosted runner has Node.js and sonar-scanner installed
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Use Node.js 20.x
+          cache: 'npm' # Cache npm dependencies
+          cache-dependency-path: 'frontend/react-vite/package-lock.json' # Specify path to lock file
+      - name: Install Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set JAVA_HOME
+        run: echo "JAVA_HOME=$(dirname $(dirname $(which java)))" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: npm ci # Use npm ci for reproducible builds
+        working-directory: frontend/react-vite
+
+      - name: Build project
+        run: npm run build # Ensure Vite builds successfully
+        working-directory: frontend/react-vite
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage # Assumes Jest or Vitest with coverage configured
+        working-directory: frontend/react-vite
+        env:
+          CI: true # Ensures tests run in CI mode
+        continue-on-error: true
+
+      - name: Verify coverage output
+        run: |
+          echo "Checking coverage directory..."
+          ls -la frontend/react-vite/coverage
+          cat frontend/react-vite/coverage/lcov.info
+        if: always() # Always run even if tests fail
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: frontend/react-vite/coverage/**/*.*
+
+      - name: Install SonarQube Scanner Globally
+        run: npm install -g sonar-scanner
+
+      - name: Run SonarQube Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.LOCAL_SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
+        run: |
+          cd frontend/react-vite  # Move into the correct directory
+          sonar-scanner \
+            -Dsonar.projectKey=com.salapp.career.launch:react-vite \
+            -Dsonar.sources=src \
+            -Dsonar.tests=src \
+            -Dsonar.test.inclusions="**/*.test.tsx,**/*.test.ts" \
+            -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info \
+            -Dsonar.host.url=${SONAR_HOST_URL} \
+            -Dsonar.login=${SONAR_TOKEN}

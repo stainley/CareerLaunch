@@ -7,6 +7,24 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov', 'html'],
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/vite-env.d.ts',
+        '**/__tests__/*',
+        '**/*.stories.{ts,tsx}', // Exclude Storybook files if present
+      ],
+      thresholds: {
+        lines: 70,
+        functions: 70,
+        branches: 70,
+        statements: 70,
+      },
+      reportsDirectory: 'coverage',
+      reportOnFailure: true,
+    },
     reporters: ['html'],
     setupFiles: './src/test/setup.ts',
     exclude: ['node_modules', 'dist'],

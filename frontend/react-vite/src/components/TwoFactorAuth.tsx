@@ -13,8 +13,6 @@ const TwoFactorAuth: React.FC<TwoFactorAuthProps> = ({ userId, onVerify }) => {
   const [error, setError] = useState<string | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const API_BASE_URL: string = import.meta.env.VITE_API_URL;
-
   const handleChange = (index: number, value: string) => {
     if (!/^[0-9]?$/.test(value)) return; // Allow only digits
     const newCode = [...totpCode];

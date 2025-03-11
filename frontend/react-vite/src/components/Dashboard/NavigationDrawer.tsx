@@ -46,9 +46,9 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({
     navigate('/', { replace: true });
   }, [navigate]);
 
-  const handleSetting = useCallback(() => {
+  /*const handleSetting = useCallback(() => {
     navigate('/settings');
-  }, [navigate]);
+  }, [navigate]);*/
 
   const drawerItems: DrawerItem[] = [
     {
@@ -107,7 +107,7 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({
         {drawerItems.map((item) => (
           <Tooltip key={item.id} title={item.tooltip} placement="right" arrow>
             <ListItem
-              button
+              component="button"
               onClick={item.onClick}
               onKeyUp={(e) => e.key === 'Enter' && item.onClick?.()}
               sx={{
@@ -123,7 +123,7 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({
                 {item.icon}
               </ListItemIcon>
               {isLargeScreen && (
-                <ListItemText primary={item.text} primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText primary={item.text} />
               )}
             </ListItem>
           </Tooltip>
