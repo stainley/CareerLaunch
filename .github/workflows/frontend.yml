@@ -24,6 +24,14 @@ jobs:
           node-version: '20' # Use Node.js 20.x
           cache: 'npm' # Cache npm dependencies
           cache-dependency-path: 'frontend/react-vite/package-lock.json' # Specify path to lock file
+      - name: Install Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set JAVA_HOME
+        run: echo "JAVA_HOME=$(dirname $(dirname $(which java)))" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: npm ci # Use npm ci for reproducible builds
@@ -55,6 +63,9 @@ jobs:
 
       - name: Install SonarQube Scanner Globally
         run: npm install -g sonar-scanner
+
+      - name: Debug SonarScanner
+        run: bash -x /opt/hostedtoolcache/node/20.18.3/x64/lib/node_modules/sonar-scanner/bin/sonar-scanner
 
       - name: Run SonarQube Scan (Global)
         env:

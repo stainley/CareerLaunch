@@ -2,6 +2,7 @@ import { AppBar, Toolbar, IconButton, Typography, Avatar, Tooltip, Box } from '@
 import { Menu as MenuIcon } from '@mui/icons-material';
 import { UserData } from '../../types';
 import { DRAWER_WIDTH } from '../../constants';
+
 import React from 'react';
 
 import profilePic from '../../assets/user.png';
