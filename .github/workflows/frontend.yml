@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: [ self-hosted, local ]
+    runs-on: [ self-hosted, local ] # Ensure your self-hosted runner has Node.js and sonar-scanner installed
     permissions:
       contents: write
     steps:
@@ -21,31 +21,36 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
+          node-version: '20' # Use Node.js 20.x
+          cache: 'npm' # Cache npm dependencies
+          cache-dependency-path: 'frontend/react-vite/package-lock.json' # Specify path to lock file
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci # Use npm ci for reproducible builds
+        working-directory: frontend/react-vite
+
+      - name: Build project
+        run: npm run build # Ensure Vite builds successfully
         working-directory: frontend/react-vite
 
       - name: Run tests with coverage
-        run: npm test -- --coverage
+        run: npm test -- --coverage # Assumes Jest or Vitest with coverage configured
         working-directory: frontend/react-vite
         env:
-          CI: true
+          CI: true # Ensures tests run in CI mode
 
       - name: SonarQube Scan
         env:
-          SONAR_TOKEN: ${{ secrets.LOCAL_SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.LOCAL_SONAR_TOKEN }} # Token from your SonarQube instance
+          SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }} # e.g., http://localhost:9000
         run: |
           cd frontend/react-vite
-          sonar-scanner \
+          npx sonar-scanner \
             -Dsonar.projectKey=com.salapp.career.launch:react-vite \
             -Dsonar.projectName="React Vite Frontend" \
             -Dsonar.sources=src \
             -Dsonar.tests=src \
-            -Dsonar.test.inclusions=**/*.test.tsx,**/*.test.ts \
+            -Dsonar.test.inclusions="**/*.test.tsx,**/*.test.ts" \
             -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info \
             -Dsonar.host.url=${SONAR_HOST_URL} \
             -Dsonar.login=${SONAR_TOKEN}
