@@ -20,7 +20,6 @@ import { UserData, UserFormData } from '../../types';
 import profilePic from '../../assets/user.png';
 import { PhotoCamera } from '@mui/icons-material';
 import axios from 'axios';
-import { API_BASE_URL } from '../../constants';
 
 interface ProfileModalProps {
   open: boolean;
@@ -128,9 +127,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
       if (!token) throw new Error('No authentication token found');
 
       // TODO: to be implemented
-      const response = await axios.put(`/users/profile`, userInfo, {
+      /*const response = await axios.put(`/users/profile`, userInfo, {
         headers: { Authorization: `Bearer ${token}` },
-      });
+      });*/
 
 
       setUserData((prev) => prev ? {

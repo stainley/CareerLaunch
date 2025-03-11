@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+
+interface ApiErrorResponse {
+  message?: string;
+  error?: string;
+
+  [key: string]: unknown;
+}
 
 const ActivateAccount: React.FC = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
-    'loading'
+    'loading',
   );
   const [countdown, setCountdown] = useState(10);
   const [searchParams] = useSearchParams();
@@ -20,7 +27,7 @@ const ActivateAccount: React.FC = () => {
       }
       try {
         const response = await axios.get(
-          `${URL_AUTH}/users/activate?token=${token}`
+          `${URL_AUTH}/users/activate?token=${token}`,
         );
         if (response.status === 200) {
           setStatus('success');
@@ -28,10 +35,15 @@ const ActivateAccount: React.FC = () => {
         }
       } catch (error) {
         setStatus('error');
-        console.error(
-          'Activation failed:',
-          error.response?.data || error.message
-        );
+
+        if (axios.isAxiosError(error)) {
+          const err = error as AxiosError<ApiErrorResponse>;
+          console.error('Activation failed:', err.response?.data?.message || err.message);
+        } else if (error instanceof Error) {
+          console.error('Activation failed:', error.message);
+        } else {
+          console.error('Activation failed:', 'Unknown error occurred');
+        }
       }
     };
     activateAccount().finally(() => setStatus('loading'));

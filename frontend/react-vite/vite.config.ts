@@ -32,9 +32,9 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: !isDev,
           agent: agent,
-          configure: (proxy, _options) => {
+          configure: (proxy) => {
             if (isDev) {
-              proxy.on('proxyReq', (proxyReq, req) => {
+              proxy.on('proxyReq', (_proxyReq, req) => {
                 console.log(`Proxying ${req.url} to ${apiTarget}`);
               });
             }
@@ -45,9 +45,9 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: !isDev,
           agent: agent,
-          configure: (proxy, _options) => {
+          configure: (proxy) => {
             if (isDev) {
-              proxy.on('proxyReq', (proxyReq, req) => {
+              proxy.on('proxyReq', (_proxyReq, req) => {
                 console.log(`Proxying ${req.url} to ${apiTarget}`);
               });
             }
