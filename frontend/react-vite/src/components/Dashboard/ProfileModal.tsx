@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 //import axios from 'axios';
-//import { API_BASE_URL } from '../../constants';
+
 import { UserData, UserFormData } from '../../types';
 import profilePic from '../../assets/user.png';
 import { PhotoCamera } from '@mui/icons-material';
