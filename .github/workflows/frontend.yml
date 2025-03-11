@@ -64,14 +64,13 @@ jobs:
       - name: Install SonarQube Scanner Globally
         run: npm install -g sonar-scanner
 
-      - name: Debug SonarScanner
-        run: bash -x /opt/hostedtoolcache/node/20.18.3/x64/lib/node_modules/sonar-scanner/bin/sonar-scanner
-
-      - name: Run SonarQube Scan (Global)
+      - name: Run SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.LOCAL_SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
         run: |
+          export SONAR_TOKEN=${SONAR_TOKEN}
+          export SONAR_HOST_URL=${SONAR_HOST_URL}
           sonar-scanner \
             -Dsonar.projectKey=com.salapp.career.launch:react-vite \
             -Dsonar.sources=src \
@@ -79,5 +78,4 @@ jobs:
             -Dsonar.test.inclusions="**/*.test.tsx,**/*.test.ts" \
             -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info \
             -Dsonar.host.url=${SONAR_HOST_URL} \
-            -Dsonar.login=${SONAR_TOKEN}
-        working-directory: frontend/react-vite
+            -Dsonar.token=${SONAR_TOKEN}
