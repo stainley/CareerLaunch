@@ -215,7 +215,7 @@ For inquiries, suggestions, or support, please contact:
 
 [![Backend CI](https://github.com/stainley/CareerLaunch/actions/workflows/backend.yml/badge.svg)](https://github.com/stainley/CareerLaunch/actions/workflows/backend.yml)
 
-[![FrontEnd CI](https://github.com/stainley/CareerLaunch/actions/workflows/frontend.yml/badge.svg?branch=main)](https://github.com/stainley/CareerLaunch/actions/workflows/frontend.yml)
+[![FrontEnd CI](https://github.com/stainley/CareerLaunch/actions/workflows/frontend.yml/badge.svg)](https://github.com/stainley/CareerLaunch/actions/workflows/frontend.yml)
 
 
 
