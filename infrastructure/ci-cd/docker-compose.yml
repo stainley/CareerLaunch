@@ -8,7 +8,7 @@ services:
       - REPO_URL=https://github.com/stainley/CareerLaunch
       - LABELS=local,java21,maven  # Custom labels for the runner
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock  # Allows Docker-in-Docker (optional)
+      - /var/run/docker.sock:/var/run/docker.sock  # Allows Docker-in-Docker
     network_mode: host
     restart: unless-stopped
 

@@ -69,12 +69,104 @@ jobs:
           SONAR_TOKEN: ${{ secrets.LOCAL_SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
         run: |
-          cd frontend/react-vite  # Move into the correct directory
+          cd frontend/react-vite
           sonar-scanner \
             -Dsonar.projectKey=com.salapp.career.launch:react-vite \
+            -Dsonar.projectName=react-vite \
             -Dsonar.sources=src \
             -Dsonar.tests=src \
             -Dsonar.test.inclusions="**/*.test.tsx,**/*.test.ts" \
             -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info \
             -Dsonar.host.url=${SONAR_HOST_URL} \
             -Dsonar.login=${SONAR_TOKEN}
+          sleep 60  # Wait 1 minutes for SonarQube to process
+
+      - name: Check SonarQube Quality Gate Status
+        id: quality-gate
+        env:
+          SONAR_TOKEN: ${{ secrets.LOCAL_SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.LOCAL_SONAR_HOST_URL }}
+        run: |
+          PROJECT_KEY=com.salapp.career.launch:react-vite
+          MAX_RETRIES=20
+          RETRY_INTERVAL=90   # 15 minutes total wait time
+
+          for ((i=1; i<=MAX_RETRIES; i++)); do
+            RESPONSE=$(curl -u "${SONAR_TOKEN}:" -s "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=${PROJECT_KEY}")
+            STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
+
+            echo "Attempt $i: Status = $STATUS"
+            echo "Full response: $RESPONSE"  # Debugging
+
+            if [ "$STATUS" = "OK" ]; then
+              echo "QUALITY_GATE_STATUS=OK" >> $GITHUB_OUTPUT
+              exit 0
+            elif [ "$STATUS" = "ERROR" ]; then
+              echo "QUALITY_GATE_STATUS=ERROR" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+
+            sleep $RETRY_INTERVAL
+          done
+
+          echo "Timed out waiting for Quality Gate result"
+          exit 1
+
+      - name: Clean Up Previous Rebase
+        run: |
+          if [ -d ".git/rebase-merge" ]; then
+            echo "Cleaning up incomplete rebase..."
+            rm -fr ".git/rebase-merge"
+          fi
+
+      - name: Update README with Quality Gate Badge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use built-in token
+        run: |
+          set -x  # Enable debug output
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+
+          BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}
+
+          # Sync with remote branch
+          git fetch origin $BRANCH_NAME
+          git rebase origin/$BRANCH_NAME || { echo "Rebase failed"; exit 1; }
+
+          SERVICE=react-vite
+          STATUS="${{ steps.quality-gate.outputs.QUALITY_GATE_STATUS }}"
+
+          echo "DEBUG: STATUS is '$STATUS'"
+          STATUS_MESSAGE=""
+          if [ "$STATUS" = "OK" ]; then     
+            STATUS_MESSAGE="passed"
+            BADGE_COLOR="green"
+          elif [ "$STATUS" = "ERROR" ]; then
+            STATUS_MESSAGE="failed"
+            BADGE_COLOR="red"
+          else
+            STATUS_MESSAGE="no executed"
+            BADGE_COLOR="yellow"
+          fi
+
+          BADGE_URL="https://img.shields.io/badge/quality_gate-${STATUS_MESSAGE}-${BADGE_COLOR}?logo=sonarqube&labelColor=grey"
+          ESCAPED_URL=$(echo "$BADGE_URL" | sed 's/&/\\&/g')  # Escape & for sed
+          BADGE_MARKDOWN="- **${SERVICE}**:  \n  ![Quality Gate Status](${ESCAPED_URL})"
+
+          if grep -q "^- \*\*${SERVICE}\*\*:" README.md; then
+            sed -i "/^- \*\*${SERVICE}\*\*:/ {N; d;}" README.md  # Delete service line + next line
+          fi
+
+          if grep -q "### 🖥️ Frontend" README.md; then
+            sed -i "/### 🖥️ Frontend/a \\\n${BADGE_MARKDOWN}" README.md
+          else
+            echo -e "### 🖥️ Frontend\n\n${BADGE_MARKDOWN}" >> README.md
+          fi
+
+          git add README.md
+          git commit -m "Update Quality Gate badge for ${SERVICE}" || echo "No changes to commit"
+          git push "https://${GH_TOKEN}@github.com/stainley/CareerLaunch.git" HEAD:${BRANCH_NAME} || echo "Push failed"
+
+      - name: Fail Pipeline on Quality Gate Error
+        if: steps.quality-gate.outputs.QUALITY_GATE_STATUS != 'OK'
+        run: exit 1
