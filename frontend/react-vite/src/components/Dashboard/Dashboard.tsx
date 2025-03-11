@@ -10,7 +10,7 @@ import ErrorState from './ErrorState';
 
 // Main Dashboard Component
 const Dashboard: React.FC = () => {
-  // const theme = useTheme();
+
   const isLargeScreen = useMediaQuery('(min-width:900px)');
   const { userData, setUserData, userInfo, setUserInfo, loading, error } = useUserData();
 
