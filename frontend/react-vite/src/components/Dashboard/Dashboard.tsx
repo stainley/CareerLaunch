@@ -35,7 +35,7 @@ const Dashboard: React.FC = () => {
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#f0f2f5' }}>
       <CssBaseline />
       <AppHeader
-        userData={userData}
+        userData={userInfo}
         onDrawerToggle={handleDrawerToggle}
         onProfileOpen={handleProfileOpen}
         isLargeScreen={isLargeScreen}

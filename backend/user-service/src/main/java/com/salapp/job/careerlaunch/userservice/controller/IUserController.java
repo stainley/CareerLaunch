@@ -33,4 +33,6 @@ public interface IUserController {
             String permissions);
 
     ResponseEntity<ProfileResponse> profileInfo(String userId, String roles, String permissions);
+
+    ResponseEntity<String> deleteUser(String userId, String roles, String permissions);
 }

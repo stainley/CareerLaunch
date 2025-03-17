@@ -47,6 +47,7 @@ eureka:
 
 api:
   version: v1
+  gateway: https://api-gateway:8080/
 
 file:
   upload-dir: uploads/

@@ -378,15 +378,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
           <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
             Professional Information
           </Typography>
-          <TextField
-            fullWidth
-            label="Profile Picture URL"
-            name="profilePictureUrl"
-            value={(userInfo as ExtendedUserFormData).profilePictureUrl || ''}
-            onChange={handleChange}
-            margin="normal"
-            variant="outlined"
-          />
+
           <TextField
             fullWidth
             label="Professional Summary"

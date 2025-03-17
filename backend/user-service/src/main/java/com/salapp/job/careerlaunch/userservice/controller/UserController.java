@@ -76,7 +76,6 @@ public class UserController implements IUserController {
         return ResponseEntity.ok("Account activated successfully");
     }
 
-    //TODO: Implement update profile validating if the user have the rights and permission to do it
     @PutMapping("/profile")
     @Override
     public ResponseEntity<UserResponse> updateUserProfile(
@@ -84,10 +83,6 @@ public class UserController implements IUserController {
             @RequestHeader(HEADER_USER_ID) String userId,
             @RequestHeader(HEADER_ROLES) String rolesHeader,
             @RequestHeader(HEADER_PERMISSIONS) String permissionsHeader) {
-
-        /*String userId = headers.getFirst(HEADER_USER_ID);
-        String rolesHeader = headers.getFirst(HEADER_ROLES);
-        String permissionsHeader = headers.getFirst(HEADER_PERMISSIONS);*/
 
         if (userId == null || rolesHeader == null || permissionsHeader == null) {
             log.warn("Missing required headers from API Gateway for user ID: {}", userId);
@@ -143,6 +138,20 @@ public class UserController implements IUserController {
         log.info("User profile info for user ID: {} - {}", userId, profileResponse);
 
         return ResponseEntity.ok(profileResponse);
+    }
+
+    @DeleteMapping
+    @Override
+    public ResponseEntity<String> deleteUser(
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader(value = "X-Roles", required = false) String roles,
+            @RequestHeader(value = "X-Permissions", required = false) String permissions
+    ) {
+        log.info("Deleting user: {}", userId);
+        User user = userService.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
+        userService.delete(user);
+        return ResponseEntity.ok("User deleted successfully");
     }
 
     private Address mapAddress(User user) {

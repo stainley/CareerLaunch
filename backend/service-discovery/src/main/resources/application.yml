@@ -12,21 +12,21 @@ spring:
 # Eureka Server Configuration
 eureka:
   #instance:
-    #hostname: localhost
-    #prefer-ip-address: false        # DNS-friendly configuration
-    #lease-renewal-interval-in-seconds: 30   # Heartbeat interval (default: 30s)
-    #lease-expiration-duration-in-seconds: 90 # Timeout before eviction (default: 90s)
+  #hostname: localhost
+  #prefer-ip-address: false        # DNS-friendly configuration
+  #lease-renewal-interval-in-seconds: 30   # Heartbeat interval (default: 30s)
+  #lease-expiration-duration-in-seconds: 90 # Timeout before eviction (default: 90s)
   client:
     register-with-eureka: false      # Disable self-registration
     fetch-registry: false            # Disable client behavior
     service-url:
       defaultZone: http://eureka-server:8761/eureka/
-  #server:
-    #enable-self-preservation: true   # Protect against network instability
-    #eviction-interval-timer-in-ms: 60000  # Cleanup interval (1 minute)
-    #response-cache-update-interval-ms: 30000  # Client refresh interval
-    #wait-time-in-ms-when-sync-empty: 0
-    #renewal-percent-threshold: 0.85  # Adjust for high-traffic services
+  server:
+    enable-self-preservation: true   # Protect against network instability
+    eviction-interval-timer-in-ms: 60000  # Cleanup interval (1 minute)
+    response-cache-update-interval-ms: 30000  # Client refresh interval
+    wait-time-in-ms-when-sync-empty: 0
+    renewal-percent-threshold: 0.85  # Adjust for high-traffic services
   environment: ${EUREKA_ENVIRONMENT}
   datacenter: ${EUREKA_DATA_CENTER}
 
