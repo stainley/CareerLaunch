@@ -6,15 +6,14 @@ import com.salapp.job.careerlaunch.userservice.dto.UserResponse;
 import com.salapp.job.careerlaunch.userservice.exception.UserNotFoundException;
 import com.salapp.job.careerlaunch.userservice.model.User;
 import com.salapp.job.careerlaunch.userservice.repository.UserRepository;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaProducerException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
@@ -32,6 +31,8 @@ public class UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final KafkaTemplate<String, NotificationRequest> kafkaTemplate;
 
+    @Value("${api.gateway}")
+    private String apiGatewayUrl;
     private static final int TOKEN_EXPIRES_IN_HOURS = 24;
     private static final String NOTIFICATION_TOPIC = "notification-events";
 
@@ -94,9 +95,9 @@ public class UserService {
             throw new IllegalArgumentException("userId cannot be null");
         }
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
-        String filePath = fileStorageService.storeFile(file);
+        String filePath = fileStorageService.storeFile(file, userId);
 
-        String gatewayUrl = "http://localhost:8080/" + filePath;
+        String gatewayUrl = apiGatewayUrl + filePath;
         log.info("Uploading profile picture: {} \nFor userId: {}", filePath, userId);
         user.setProfilePictureUrl(gatewayUrl);
 
@@ -155,6 +156,7 @@ public class UserService {
 
     public UserResponse updateUserProfile(String userId, UserProfileRequest request) {
         User userFound = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+
         userFound.setFirstName(request.firstName());
         userFound.setLastName(request.lastName());
         userFound.setPhoneNumber(request.phoneNumber());

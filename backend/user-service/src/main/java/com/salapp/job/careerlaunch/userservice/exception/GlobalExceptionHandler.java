@@ -34,6 +34,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler
+    public ResponseEntity<ExceptionResponse> handleProfilePictureException(final ProfilePictureException exception) {
+        log.error("Profile picture exception: {}", exception.getMessage());
+
+        ExceptionResponse response = ExceptionResponse.builder(HttpStatus.EXPECTATION_FAILED.value(), "Profile picture exception")
+                .detail(exception.getMessage())
+                .errorCode("PROFILE_PICTURE_EXCEPTION")
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.EXPECTATION_FAILED);
+    }
+
     /**
      * Handles IllegalArgumentException for invalid input parameters.
      *

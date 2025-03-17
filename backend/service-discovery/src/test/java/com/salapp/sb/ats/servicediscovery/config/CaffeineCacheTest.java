@@ -4,8 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for the {@link CaffeineCache} configuration class.
@@ -26,7 +25,6 @@ class CaffeineCacheTest {
 
         // Assert
         assertNotNull(cacheManager, "CacheManager should not be null");
-        assertTrue(cacheManager instanceof CaffeineCacheManager,
-                "CacheManager should be an instance of CaffeineCacheManager");
+        assertInstanceOf(CaffeineCacheManager.class, cacheManager, "CacheManager should be an instance of CaffeineCacheManager");
     }
 }
