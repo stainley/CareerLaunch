@@ -247,6 +247,7 @@ For inquiries, suggestions, or support, please contact:
 - **react-vite**:  
   ![Quality Gate Status](https://img.shields.io/badge/quality_gate-passed-green?logo=sonarqube&labelColor=grey)
 
+
 ### 📱 Mobile
 
 - **Flutter**:
